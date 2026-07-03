@@ -216,10 +216,7 @@ section{padding:90px 40px}
 /* ── MERCH ── */
 #merch{background:var(--dark)}
 .merch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1000px;margin:0 auto}
-.merch-card{
-  background:var(--black);border:1px solid #1c1c1c;border-radius:4px;
-  overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;
-}
+.merch-card{background:var(--black);border:1px solid #1c1c1c;border-radius:4px;overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;display:flex;flex-direction:column;height:100%}
 .merch-card:hover{border-color:rgba(255,215,0,.3);transform:translateY(-3px)}
 .merch-img{
   height:110px;background:#0d0d0d;
@@ -227,10 +224,10 @@ section{padding:90px 40px}
   border-bottom:1px solid #141414;
 }
 .merch-img img{height:64px;width:64px;object-fit:contain;opacity:.75;filter:drop-shadow(0 0 8px rgba(255,215,0,.3))}
-.merch-info{padding:12px}
-.merch-name{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-bottom:3px}
+.merch-info{padding:12px;display:flex;flex-direction:column;flex:1}
+.merch-name{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-bottom:3px;line-height:1.25;min-height:2.5em;display:flex;align-items:flex-start}
 .merch-price{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--yellow);margin-bottom:10px}
-.merch-btn{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--yellow);border:1px solid rgba(255,215,0,.3);padding:6px 10px;cursor:pointer;width:100%;border-radius:2px;transition:background .2s}
+.merch-btn{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--yellow);border:1px solid rgba(255,215,0,.3);padding:6px 10px;cursor:pointer;width:100%;border-radius:2px;transition:background .2s;margin-top:auto}
 .merch-btn:hover{background:rgba(255,215,0,.08)}
 
 /* ── RULES ── */
