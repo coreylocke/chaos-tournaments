@@ -609,7 +609,7 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
   const pts = new THREE.Points(geo, mat);
   scene.add(pts);
 
-  // Floating geometry - crossed sword shapes (elongated octahedra)
+  /* Floating geometry - crossed sword shapes (elongated octahedra)
   function makeSword(x,y,z,ry){
     const g = new THREE.OctahedronGeometry(0.06, 0);
     const m = new THREE.MeshBasicMaterial({color:0xFFD700, wireframe:true, transparent:true, opacity:0.25});
@@ -650,16 +650,16 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
     makeSword(-2.0, -72.0, -2,  Math.PI*0.13),
     makeSword( 2.0, -72.0, -2, -Math.PI*0.13),
   ];
-  swords.forEach(s => scene.add(s));
+  swords.forEach(s => scene.add(s)); */
 
-  // Crown-like ring
+  /* Crown-like ring
   const ringGeo = new THREE.TorusGeometry(0.8, 0.015, 8, 48);
   const ringMat = new THREE.MeshBasicMaterial({color:0xFFD700, transparent:true, opacity:0.12});
   const ring = new THREE.Mesh(ringGeo, ringMat);
   ring.position.set(0,0,-1);
-  scene.add(ring);
+  scene.add(ring); */
 
-  // Lightning bolt line
+  /* Lightning bolt line
   const lpts = [
     new THREE.Vector3(0.1, 0.6, -0.5),
     new THREE.Vector3(-0.05, 0.1, -0.5),
@@ -669,7 +669,7 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
   const lGeo = new THREE.BufferGeometry().setFromPoints(lpts);
   const lMat = new THREE.LineBasicMaterial({color:0xFFD700, transparent:true, opacity:0.4});
   const bolt = new THREE.Line(lGeo, lMat);
-  scene.add(bolt);
+  scene.add(bolt); */
 
   let t = 0;
   function animate(){
@@ -684,18 +684,18 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
     }
     geo.attributes.position.needsUpdate = true;
 
-    // Rotate swords slowly
+    /* Rotate swords slowly
     swords.forEach((s,i) => {
       s.rotation.z = Math.PI/4 + Math.sin(t*0.4 + i)*0.08;
       s.position.y += Math.sin(t*0.6 + i*1.5)*0.001;
-    });
+    }); */
 
-    // Breathe ring
+    /* Breathe ring
     ring.rotation.z = t*0.15;
-    ring.scale.setScalar(1 + Math.sin(t*0.7)*0.04);
+    ring.scale.setScalar(1 + Math.sin(t*0.7)*0.04); */
 
-    // Pulse bolt
-    lMat.opacity = 0.2 + Math.abs(Math.sin(t*2))*0.35;
+    /* // Pulse bolt
+    lMat.opacity = 0.2 + Math.abs(Math.sin(t*2))*0.35; */
 
     // Gentle camera sway
     camera.position.x = Math.sin(t*0.12)*0.3;
