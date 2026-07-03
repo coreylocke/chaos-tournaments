@@ -215,29 +215,22 @@ section{padding:90px 40px}
 
 /* ── MERCH ── */
 #merch{background:var(--dark)}
-.merch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.merch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1000px;margin:0 auto}
 .merch-card{
   background:var(--black);border:1px solid #1c1c1c;border-radius:4px;
   overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;
 }
 .merch-card:hover{border-color:rgba(255,215,0,.3);transform:translateY(-3px)}
 .merch-img{
-  height:160px;background:#0d0d0d;
+  height:110px;background:#0d0d0d;
   display:flex;align-items:center;justify-content:center;
   border-bottom:1px solid #141414;
 }
-.merch-img img{height:100px;width:100px;object-fit:contain;opacity:.75;filter:drop-shadow(0 0 8px rgba(255,215,0,.3))}
-.merch-info{padding:16px}
-.merch-name{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px}
-.merch-price{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--yellow);margin-bottom:14px}
-.merch-btn{
-  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
-  letter-spacing:.15em;text-transform:uppercase;
-  background:transparent;color:var(--yellow);
-  border:1px solid rgba(255,215,0,.25);
-  padding:7px 16px;cursor:pointer;width:100%;border-radius:2px;
-  transition:background .2s;
-}
+.merch-img img{height:64px;width:64px;object-fit:contain;opacity:.75;filter:drop-shadow(0 0 8px rgba(255,215,0,.3))}
+.merch-info{padding:12px}
+.merch-name{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-bottom:3px}
+.merch-price{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--yellow);margin-bottom:10px}
+.merch-btn{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--yellow);border:1px solid rgba(255,215,0,.3);padding:6px 10px;cursor:pointer;width:100%;border-radius:2px;transition:background .2s}
 .merch-btn:hover{background:rgba(255,215,0,.08)}
 
 /* ── RULES ── */
@@ -277,17 +270,49 @@ footer{
 .fade-up.visible{opacity:1;transform:translateY(0)}
 
 /* ── MOBILE ── */
+/* ── Desktop 1920px ── */
+@media(min-width:1600px){
+  .merch-grid{max-width:1100px;gap:16px}
+  .merch-img{height:130px}
+  .merch-img img{height:76px;width:76px}
+  .merch-name{font-size:14px}
+  .merch-price{font-size:12px}
+}
+
+/* ── Laptop 1280px ── */
+@media(max-width:1280px){
+  .merch-grid{max-width:900px;gap:12px}
+  .merch-img{height:105px}
+  .merch-img img{height:60px;width:60px}
+}
+
+/* ── Tablet 768px ── */
+@media(max-width:768px){
+  .merch-grid{grid-template-columns:repeat(4,1fr);gap:8px;max-width:100%}
+  .merch-img{height:80px}
+  .merch-img img{height:44px;width:44px}
+  .merch-info{padding:8px}
+  .merch-name{font-size:10px;margin-bottom:2px}
+  .merch-price{font-size:9px;margin-bottom:6px}
+  .merch-btn{font-size:8px;padding:5px 6px}
+}
+
 @media(max-width:700px){
   nav .nav-links{display:none}
   .hero-title{font-size:28px}
   .hero-stats{gap:28px}
   .podiums{grid-template-columns:1fr}
-  .merch-grid{grid-template-columns:1fr 1fr}
   section{padding:60px 24px}
   .hero-logo{width:100px;height:100px}
 }
 @media(max-width:480px){
-  .merch-grid{grid-template-columns:1fr}
+  .merch-grid{grid-template-columns:repeat(4,1fr);gap:6px}
+  .merch-img{height:60px}
+  .merch-img img{height:32px;width:32px}
+  .merch-info{padding:6px 5px}
+  .merch-name{font-size:8px;line-height:1.2}
+  .merch-price{font-size:7px;margin-bottom:5px}
+  .merch-btn{font-size:6px;padding:4px 3px;letter-spacing:.04em}
 }
 
 /* ── BRACKET SHRINK-TO-FIT (no slider) ── */
