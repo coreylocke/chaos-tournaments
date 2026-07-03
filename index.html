@@ -595,7 +595,7 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
 
   // Gold particle field
   const geo = new THREE.BufferGeometry();
-  const N = 2100;
+  const N = 4200;
   const pos = new Float32Array(N*3);
   const speeds = new Float32Array(N);
   for(let i=0;i<N;i++){
@@ -605,7 +605,7 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
     speeds[i]  = 0.005 + Math.random()*0.015;
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  const mat = new THREE.PointsMaterial({color:0xFFD700, size:0.04, transparent:true, opacity:0.55});
+  const mat = new THREE.PointsMaterial({color:0xFFD700, size:0.04, transparent:true, opacity:0.65});
   const pts = new THREE.Points(geo, mat);
   scene.add(pts);
 
