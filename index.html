@@ -553,7 +553,7 @@ footer{
   const pts = new THREE.Points(geo, mat);
   scene.add(pts);
 
-  // Floating geometry - crossed sword shapes (elongated octahedra)
+/*  // Floating geometry - crossed sword shapes (elongated octahedra)
   function makeSword(x,y,z,ry){
     const g = new THREE.OctahedronGeometry(0.06, 0);
     const m = new THREE.MeshBasicMaterial({color:0xFFD700, wireframe:true, transparent:true, opacity:0.25});
@@ -569,7 +569,7 @@ footer{
     grp.rotation.z = Math.PI/4;
     return grp;
   }
-
+*/
   const swords = [
     makeSword(-1.2, 0.8, -1, Math.PI*0.1),
     makeSword(1.2, 0.8, -1, -Math.PI*0.1),
