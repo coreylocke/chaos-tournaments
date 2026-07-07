@@ -358,10 +358,10 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
     <li><a href="#rules" onclick="setActive(this)">Rules</a></li>
     <li><a href="#grudge" onclick="setActive(this)" style="color:var(--yellow)">Grudge</a></li>
   </ul>
-  <a href="https://discord.gg/UAvgJeNQUm" target="_blank" rel="noopener" class="btn-discord" style="text-decoration:none">
+  <button id="nav-discord-btn" class="btn-discord" onclick="handleDiscordAuthClick('nav')">
     <svg width="14" height="11" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
     Login with Discord
-  </a>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -373,10 +373,10 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
     <div class="hero-tagline">Where <em>chaos</em> crowns champions.<br>Enter the arena. Prove your rank.</div>
     <div class="hero-ctas">
       <button class="btn-primary" onclick="location.href='#brackets'">View Brackets</button>
-      <a href="https://discord.gg/UAvgJeNQUm" target="_blank" rel="noopener" class="btn-discord" style="font-size:14px;padding:15px 28px;text-decoration:none">
+      <button id="hero-discord-btn" class="btn-discord" style="font-size:14px;padding:15px 28px" onclick="handleDiscordAuthClick('hero')">
         <svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
         Register with Discord
-      </a>
+      </button>
   </div>
 </section>
 
@@ -739,5 +739,87 @@ function setActive(el){
   el.classList.add('active');
 }
 </script>
+
+<!-- ── SUPABASE DISCORD AUTH ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://cgpdrynqukzkyriqacnr.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_8z9CRfwgE61EtJhHuR7NjA_E1Ez4C5x";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.__sb = sb;
+
+  async function loginWithDiscord(){
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'discord',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if(error) console.error('Discord login error:', error);
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    window.location.reload();
+  }
+
+  window.handleDiscordAuthClick = async function(which){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      logout();
+    } else {
+      loginWithDiscord();
+    }
+  };
+
+  function renderLoggedIn(session){
+    const meta = session.user.user_metadata || {};
+    const username = meta.full_name || meta.name || meta.user_name || meta.custom_claims?.global_name || 'Player';
+    const avatar = meta.avatar_url || '';
+
+    const navBtn = document.getElementById('nav-discord-btn');
+    if(navBtn){
+      navBtn.innerHTML = (avatar ? `<img src="${avatar}" style="width:20px;height:20px;border-radius:50%;margin-right:7px;vertical-align:middle">` : '') + username;
+      navBtn.title = 'Click to log out';
+    }
+
+    const heroBtn = document.getElementById('hero-discord-btn');
+    if(heroBtn){
+      heroBtn.innerHTML = (avatar ? `<img src="${avatar}" style="width:18px;height:18px;border-radius:50%;margin-right:7px;vertical-align:middle">` : '') + `Welcome, ${username} (Logout)`;
+    }
+  }
+
+  function renderLoggedOut(){
+    const navBtn = document.getElementById('nav-discord-btn');
+    if(navBtn){
+      navBtn.innerHTML = `<svg width="14" height="11" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>\n    Login with Discord`;
+      navBtn.title = '';
+    }
+    const heroBtn = document.getElementById('hero-discord-btn');
+    if(heroBtn){
+      heroBtn.innerHTML = `<svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>\n        Register with Discord`;
+    }
+  }
+
+  async function initAuthUI(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      renderLoggedIn(session);
+    } else {
+      renderLoggedOut();
+    }
+  }
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    if(session && session.user){
+      renderLoggedIn(session);
+    } else {
+      renderLoggedOut();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', initAuthUI);
+})();
+</script>
+
 </body>
 </html>
