@@ -40,11 +40,11 @@ nav{
   font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;
   letter-spacing:.14em;color:var(--yellow);line-height:1.1;
 }
-.nav-name small{display:block;font-size:8px;letter-spacing:.25em;color:#555;font-weight:700}
+.nav-name small{display:block;font-size:8px;letter-spacing:.25em;color:#bbb;font-weight:700}
 .nav-links{display:flex;gap:32px;list-style:none}
 .nav-links a{
   font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
-  letter-spacing:.12em;text-transform:uppercase;color:#666;
+  letter-spacing:.12em;text-transform:uppercase;color:#ccc;
   text-decoration:none;transition:color .2s;
 }
 .nav-links a:hover,.nav-links a.active{color:var(--yellow)}
@@ -63,9 +63,7 @@ nav{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:80px 40px 60px;overflow:hidden;
 }
-#three-canvas{
-  position:absolute;inset:0;z-index:0;pointer-events:none;
-}
+#three-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 .hero-content{position:relative;z-index:2}
 .hero-logo{
   width:140px;height:140px;object-fit:contain;
@@ -82,7 +80,7 @@ nav{
 }
 .hero-sub{
   font-family:'Rajdhani',sans-serif;font-size:13px;
-  letter-spacing:.35em;color:#444;text-transform:uppercase;margin-bottom:18px;
+  letter-spacing:.35em;color:#bbb;text-transform:uppercase;margin-bottom:18px;
 }
 .hero-tagline{
   font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;
@@ -115,7 +113,7 @@ nav{
 }
 .stat{text-align:center}
 .stat-n{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:700;color:var(--yellow)}
-.stat-l{font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.2em;color:#444;text-transform:uppercase;margin-top:2px}
+.stat-l{font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.2em;color:#bbb;text-transform:uppercase;margin-top:2px}
 
 /* ── SECTION BASE ── */
 section{padding:90px 40px}
@@ -128,20 +126,18 @@ section{padding:90px 40px}
   background:rgba(255,215,0,.1);color:var(--yellow);
   border:1px solid rgba(255,215,0,.22);padding:3px 10px;border-radius:2px;
 }
-.badge.live{background:rgba(255,50,50,.15);color:#ff4444;border-color:rgba(255,68,68,.3);animation:pulse 1.6s ease infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 
 /* ── DIVIDER ── */
 .section-divider{height:1px;background:linear-gradient(90deg,transparent,#222,transparent);margin:0 40px}
 
 /* ── BRACKETS ── */
 #brackets{background:var(--dark)}
-.bracket-wrap{overflow-x:auto;padding-bottom:12px}
-.bracket-grid{display:flex;min-width:580px;gap:0}
+.bracket-wrap{width:100%;overflow:visible}
+.bracket-grid{display:flex;width:100%;gap:4px}
 .b-round{flex:1;display:flex;flex-direction:column}
 .round-lbl{
-  font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.22em;
-  text-transform:uppercase;color:#333;text-align:center;
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:#ccc;text-align:center;
   padding-bottom:14px;border-bottom:1px solid #181818;margin-bottom:16px;
 }
 .b-matches{flex:1;display:flex;flex-direction:column;gap:10px;justify-content:space-around;padding:0 6px}
@@ -154,7 +150,7 @@ section{padding:90px 40px}
 .mp{
   display:flex;align-items:center;justify-content:space-between;
   padding:8px 10px;font-family:'Rajdhani',sans-serif;
-  font-size:13px;font-weight:600;color:#555;
+  font-size:20px;font-weight:600;color:#bbb;
   border-bottom:1px solid #141414;
 }
 .mp:last-child{border-bottom:none}
@@ -162,7 +158,7 @@ section{padding:90px 40px}
 .av{
   width:18px;height:18px;border-radius:50%;background:#1e1e1e;
   font-size:7px;display:flex;align-items:center;justify-content:center;
-  color:#444;margin-right:8px;flex-shrink:0;font-family:'Orbitron',sans-serif;
+  color:#bbb;margin-right:8px;flex-shrink:0;font-family:'Orbitron',sans-serif;
 }
 .mp.w .av{background:rgba(255,215,0,.15);color:var(--yellow)}
 .mp-left{display:flex;align-items:center}
@@ -172,10 +168,10 @@ section{padding:90px 40px}
 /* ── LEADERBOARD ── */
 .lb{margin-top:40px}
 .lb table{width:100%;border-collapse:collapse;font-family:'Rajdhani',sans-serif}
-.lb th{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#333;padding:8px 14px;text-align:left;border-bottom:1px solid #181818}
-.lb td{padding:11px 14px;font-size:15px;font-weight:600;color:#666;border-bottom:1px solid #101010}
+.lb th{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#aaa;padding:8px 14px;text-align:left;border-bottom:1px solid #181818}
+.lb td{padding:11px 14px;font-size:15px;font-weight:600;color:#ccc;border-bottom:1px solid #101010}
 .lb tr:hover td{background:rgba(255,255,255,.015)}
-.rk{font-family:'Orbitron',sans-serif;font-size:11px;color:#2a2a2a}
+.rk{font-family:'Orbitron',sans-serif;font-size:11px;color:#888}
 .rk.g{color:var(--yellow)}.rk.s{color:#aaa}.rk.b{color:#8B6914}
 .pn{color:var(--white)}
 .wn{color:var(--yellow)}
@@ -192,9 +188,9 @@ section{padding:90px 40px}
   background:radial-gradient(ellipse at center,rgba(255,215,0,.05) 0%,transparent 65%);
   pointer-events:none;
 }
-.prize-lbl{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#444;margin-bottom:10px}
+.prize-lbl{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#bbb;margin-bottom:10px}
 .prize-amt{font-family:'Orbitron',sans-serif;font-size:52px;font-weight:900;color:var(--yellow);text-shadow:0 0 40px rgba(255,215,0,.25)}
-.prize-note{font-family:'Rajdhani',sans-serif;font-size:13px;color:#333;margin-top:8px;letter-spacing:.08em}
+.prize-note{font-family:'Rajdhani',sans-serif;font-size:13px;color:#aaa;margin-top:8px;letter-spacing:.08em}
 .podiums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .pod{
   background:var(--dark);border:1px solid #1c1c1c;
@@ -204,42 +200,32 @@ section{padding:90px 40px}
 .pod.p2{border-color:rgba(200,200,200,.15)}
 .pod.p3{border-color:rgba(139,105,20,.2)}
 .pod-icon{font-size:36px;margin-bottom:6px}
-.pod-rank{font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#333;margin-bottom:18px}
+.pod-rank{font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#aaa;margin-bottom:18px}
 .pod-pct{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px}
-.pod-amt{font-family:'Rajdhani',sans-serif;font-size:14px;color:#444}
+.pod-amt{font-family:'Rajdhani',sans-serif;font-size:14px;color:#bbb}
 .p1 .pod-pct{color:var(--yellow)} .p2 .pod-pct{color:#bbb} .p3 .pod-pct{color:#8B6914}
-.p1 .pod-amt{color:#777}
+.p1 .pod-amt{color:#ccc}
 .payout-note{
   margin-top:24px;background:#0a0a0a;border:1px solid #181818;
   border-radius:4px;padding:20px 24px;
-  font-family:'Rajdhani',sans-serif;font-size:14px;color:#444;line-height:1.7;
+  font-family:'Rajdhani',sans-serif;font-size:14px;color:#bbb;line-height:1.7;
 }
 
 /* ── MERCH ── */
 #merch{background:var(--dark)}
-.merch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.merch-card{
-  background:var(--black);border:1px solid #1c1c1c;border-radius:4px;
-  overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;
-}
+.merch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1000px;margin:0 auto}
+.merch-card{background:var(--black);border:1px solid #1c1c1c;border-radius:4px;overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;display:flex;flex-direction:column;height:100%}
 .merch-card:hover{border-color:rgba(255,215,0,.3);transform:translateY(-3px)}
 .merch-img{
-  height:160px;background:#0d0d0d;
+  height:110px;background:#0d0d0d;
   display:flex;align-items:center;justify-content:center;
   border-bottom:1px solid #141414;
 }
-.merch-img img{height:100px;width:100px;object-fit:contain;opacity:.75;filter:drop-shadow(0 0 8px rgba(255,215,0,.3))}
-.merch-info{padding:16px}
-.merch-name{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--white);margin-bottom:4px}
-.merch-price{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--yellow);margin-bottom:14px}
-.merch-btn{
-  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
-  letter-spacing:.15em;text-transform:uppercase;
-  background:transparent;color:var(--yellow);
-  border:1px solid rgba(255,215,0,.25);
-  padding:7px 16px;cursor:pointer;width:100%;border-radius:2px;
-  transition:background .2s;
-}
+.merch-img img{height:64px;width:64px;object-fit:contain;opacity:.75;filter:drop-shadow(0 0 8px rgba(255,215,0,.3))}
+.merch-info{padding:12px;display:flex;flex-direction:column;flex:1}
+.merch-name{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-bottom:3px;line-height:1.25;min-height:2.5em;display:flex;align-items:flex-start}
+.merch-price{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--yellow);margin-bottom:10px}
+.merch-btn{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--yellow);border:1px solid rgba(255,215,0,.3);padding:6px 10px;cursor:pointer;width:100%;border-radius:2px;transition:background .2s;margin-top:auto}
 .merch-btn:hover{background:rgba(255,215,0,.08)}
 
 /* ── RULES ── */
@@ -248,7 +234,7 @@ section{padding:90px 40px}
 .rule-item{
   display:flex;gap:20px;padding:18px 0;
   border-bottom:1px solid #111;
-  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:#888;line-height:1.5;
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:#ddd;line-height:1.5;
 }
 .rule-id{
   font-family:'Orbitron',sans-serif;font-size:10px;
@@ -259,7 +245,7 @@ section{padding:90px 40px}
   background:rgba(88,101,242,.1);border:1px solid rgba(88,101,242,.3);
   border-radius:4px;padding:28px;text-align:center;
 }
-.discord-cta p{font-family:'Rajdhani',sans-serif;font-size:14px;color:#555;margin-bottom:18px;line-height:1.6}
+.discord-cta p{font-family:'Rajdhani',sans-serif;font-size:14px;color:#bbb;margin-bottom:18px;line-height:1.6}
 
 /* ── FOOTER ── */
 footer{
@@ -268,32 +254,95 @@ footer{
 }
 .footer-brand{display:flex;align-items:center;gap:10px}
 .footer-logo{height:28px;width:auto;opacity:.7}
-.footer-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;color:#333}
+.footer-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;color:#666}
 .footer-links{display:flex;gap:24px}
-.footer-links a{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:.1em;color:#333;text-decoration:none;transition:color .2s}
+.footer-links a{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:.1em;color:#666;text-decoration:none;transition:color .2s}
 .footer-links a:hover{color:var(--yellow)}
-.footer-copy{font-family:'Rajdhani',sans-serif;font-size:11px;color:#2a2a2a;letter-spacing:.08em}
+.footer-copy{font-family:'Rajdhani',sans-serif;font-size:11px;color:#666;letter-spacing:.08em}
 
 /* ── SCROLL ANIMATIONS ── */
 .fade-up{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
 .fade-up.visible{opacity:1;transform:translateY(0)}
 
 /* ── MOBILE ── */
+/* ── Desktop 1920px ── */
+@media(min-width:1600px){
+  .merch-grid{max-width:1100px;gap:16px}
+  .merch-img{height:130px}
+  .merch-img img{height:76px;width:76px}
+  .merch-name{font-size:14px}
+  .merch-price{font-size:12px}
+}
+
+/* ── Laptop 1280px ── */
+@media(max-width:1280px){
+  .merch-grid{max-width:900px;gap:12px}
+  .merch-img{height:105px}
+  .merch-img img{height:60px;width:60px}
+}
+
+/* ── Tablet 768px ── */
+@media(max-width:768px){
+  .merch-grid{grid-template-columns:repeat(4,1fr);gap:8px;max-width:100%}
+  .merch-img{height:80px}
+  .merch-img img{height:44px;width:44px}
+  .merch-info{padding:8px}
+  .merch-name{font-size:10px;margin-bottom:2px}
+  .merch-price{font-size:9px;margin-bottom:6px}
+  .merch-btn{font-size:8px;padding:5px 6px}
+}
+
 @media(max-width:700px){
   nav .nav-links{display:none}
   .hero-title{font-size:28px}
   .hero-stats{gap:28px}
   .podiums{grid-template-columns:1fr}
-  .merch-grid{grid-template-columns:1fr 1fr}
   section{padding:60px 24px}
   .hero-logo{width:100px;height:100px}
 }
 @media(max-width:480px){
-  .merch-grid{grid-template-columns:1fr}
+  .merch-grid{grid-template-columns:repeat(4,1fr);gap:6px}
+  .merch-img{height:60px}
+  .merch-img img{height:32px;width:32px}
+  .merch-info{padding:6px 5px}
+  .merch-name{font-size:8px;line-height:1.2}
+  .merch-price{font-size:7px;margin-bottom:5px}
+  .merch-btn{font-size:6px;padding:4px 3px;letter-spacing:.04em}
 }
+
+/* ── BRACKET SHRINK-TO-FIT (no slider) ── */
+.bracket-wrap{overflow:visible!important;width:100%!important}
+.bracket-grid{min-width:0!important;width:100%!important;gap:3px!important}
+.b-round{min-width:0!important;flex:1 1 0!important}
+.b-matches{gap:4px!important;padding:0 2px!important}
+.match{min-width:0!important;overflow:hidden!important}
+.mp{padding:4px 3px!important;font-size:12px!important;gap:2px!important}
+.av{width:11px!important;height:11px!important;font-size:6px!important;margin-right:2px!important;flex-shrink:0!important}
+.round-lbl{font-size:12px!important;font-weight:700;letter-spacing:.02em!important;padding-bottom:4px!important;margin-bottom:6px!important;white-space:nowrap!important}
+.sc{font-size:8px!important}
+.mp-l{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;min-width:0!important}
+@media(max-width:480px){
+  .mp{padding:3px 2px!important;font-size:11px!important}
+  .av{width:9px!important;height:9px!important;font-size:5px!important;margin-right:1px!important}
+  .round-lbl{font-size:10px!important;font-weight:700;letter-spacing:0!important}
+  .sc{font-size:7px!important}
+}
+
+/* ── GLOBAL 3D LAYER ── */
+body{background:#080808}
+section{position:relative;z-index:10;background:transparent}
+#brackets{background:rgba(8,8,8,0.50)}
+#payouts{background:rgba(8,8,8,0.50)}
+#merch{background:rgba(8,8,8,0.50)}
+#rules{background:rgba(8,8,8,0.50)}
+#grudge{background:rgba(8,8,8,0.50)!important}
+nav{position:fixed;top:0;left:0;right:0;z-index:200!important}
+footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
+.section-divider{position:relative;z-index:10}
 </style>
 </head>
 <body>
+<canvas id="three-canvas"></canvas>
 
 <!-- NAV -->
 <nav id="main-nav">
@@ -307,8 +356,9 @@ footer{
     <li><a href="#payouts" onclick="setActive(this)">Payouts</a></li>
     <li><a href="#merch" onclick="setActive(this)">Merch</a></li>
     <li><a href="#rules" onclick="setActive(this)">Rules</a></li>
+    <li><a href="#grudge" onclick="setActive(this)" style="color:var(--yellow)">Grudge</a></li>
   </ul>
-  <button class="btn-discord">
+  <button id="nav-discord-btn" class="btn-discord" onclick="handleDiscordAuthClick('nav')">
     <svg width="14" height="11" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
     Login with Discord
   </button>
@@ -316,26 +366,17 @@ footer{
 
 <!-- HERO -->
 <section id="hero">
-  <canvas id="three-canvas"></canvas>
   <div class="hero-content">
     <img class="hero-logo" src="data:image/png;base64,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" alt="Chaos Tournaments"/>
     <div class="hero-title">CHAOS TOURNAMENTS</div>
-    <div class="hero-sub">Rainbow Six Siege &bull; Cash Prizes &bull; Season 2026</div>
+    <div class="hero-sub">Rainbow Six Siege Tournament Play &bull; Turn Skills Into Cash  &bull; PC &bull; Xbox &bull; PS4/PS5</div>
     <div class="hero-tagline">Where <em>chaos</em> crowns champions.<br>Enter the arena. Prove your rank.</div>
     <div class="hero-ctas">
-      <button class="btn-primary" onclick="location.href='https://discord.gg/UAvgJeNQUm'">Chaos Tournament Registration / Sign Up</button>
-      <button class="btn-discord" style="font-size:14px;padding:15px 28px" onclick="window.open('https://discord.gg/UAvgJeNQUm','_blank')">
+      <button class="btn-primary" onclick="location.href='#brackets'">View Brackets</button>
+      <button id="hero-discord-btn" class="btn-discord" style="font-size:14px;padding:15px 28px" onclick="handleDiscordAuthClick('hero')">
         <svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
-        Join Our Discord
+        Register with Discord
       </button>
-    </div>
-    <p style="text-align:center;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:#bbb;margin-top:-40px;margin-bottom:56px">Join Discord for tournament info</p>
-    <div class="hero-stats">
-      <div class="stat"><div class="stat-n">$500</div><div class="stat-l">Prize Pool</div></div>
-      <div class="stat"><div class="stat-n">32</div><div class="stat-l">Players</div></div>
-      <div class="stat"><div class="stat-n">DBL</div><div class="stat-l">Elim Format</div></div>
-      <div class="stat"><div class="stat-n">S2</div><div class="stat-l">Season</div></div>
-    </div>
   </div>
 </section>
 
@@ -346,28 +387,28 @@ footer{
   <div class="section-inner">
     <div class="sec-header fade-up">
       <div class="sec-title">BRACKETS</div>
-      <div class="badge live">&bull; Live</div>
+      <div class="badge">Qualifier and Contender Round not listed</div>
     </div>
     <div class="bracket-wrap fade-up">
       <div class="bracket-grid">
         <div class="b-round">
-          <div class="round-lbl">Quarterfinals</div>
+          <div class="round-lbl">Quarterfinal</div>
           <div class="b-matches">
-            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">VX</div>VortexR6</div><div class="sc">2</div></div><div class="mp"><div class="mp-left"><div class="av">GH</div>GhostFrag</div><div class="sc">0</div></div></div>
-            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">NX</div>NullXect</div><div class="sc">2</div></div><div class="mp"><div class="mp-left"><div class="av">IR</div>IronRook</div><div class="sc">1</div></div></div>
-            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">BL</div>BladeOps</div><div class="sc">2</div></div><div class="mp"><div class="mp-left"><div class="av">SP</div>ShadowPeak</div><div class="sc">0</div></div></div>
-            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">CR</div>CryptoRaze</div><div class="sc">2</div></div><div class="mp"><div class="mp-left"><div class="av">WT</div>WarlordTC</div><div class="sc">1</div></div></div>
+            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">VX</div>VortexR6</div><div class="sc">1</div></div><div class="mp"><div class="mp-left"><div class="av">GH</div>GhostFrag</div><div class="sc">0</div></div></div>
+            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">NX</div>NullXect</div><div class="sc">1</div></div><div class="mp"><div class="mp-left"><div class="av">IR</div>IronRook</div><div class="sc">0</div></div></div>
+            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">BL</div>BladeOps</div><div class="sc">1</div></div><div class="mp"><div class="mp-left"><div class="av">SP</div>ShadowPeak</div><div class="sc">0</div></div></div>
+            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">CR</div>CryptoRaze</div><div class="sc">1</div></div><div class="mp"><div class="mp-left"><div class="av">WT</div>WarlordTC</div><div class="sc">0</div></div></div>
           </div>
         </div>
         <div class="b-round">
-          <div class="round-lbl">Semifinals</div>
+          <div class="round-lbl">Semifinal</div>
           <div class="b-matches">
-            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">VX</div>VortexR6</div><div class="sc">2</div></div><div class="mp"><div class="mp-left"><div class="av">NX</div>NullXect</div><div class="sc">1</div></div></div>
+            <div class="match done"><div class="mp w"><div class="mp-left"><div class="av">VX</div>VortexR6</div><div class="sc">1</div></div><div class="mp"><div class="mp-left"><div class="av">NX</div>NullXect</div><div class="sc">1</div></div></div>
             <div class="match"><div class="mp"><div class="mp-left"><div class="av">BL</div>BladeOps</div><div class="sc">—</div></div><div class="mp"><div class="mp-left"><div class="av">CR</div>CryptoRaze</div><div class="sc">—</div></div></div>
           </div>
         </div>
         <div class="b-round">
-          <div class="round-lbl">Grand Final</div>
+          <div class="round-lbl">Final</div>
           <div class="b-matches">
             <div class="match"><div class="mp"><div class="mp-left"><div class="av">VX</div>VortexR6</div><div class="sc">—</div></div><div class="mp"><div class="mp-left"><div class="av">?</div>TBD</div><div class="sc">—</div></div></div>
           </div>
@@ -381,11 +422,11 @@ footer{
       <table>
         <thead><tr><th>#</th><th>Player</th><th>W</th><th>L</th><th>Earnings</th></tr></thead>
         <tbody>
-          <tr><td><span class="rk g">01</span></td><td class="pn">VortexR6</td><td class="wn">8</td><td>1</td><td style="color:var(--yellow)">$250</td></tr>
-          <tr><td><span class="rk s">02</span></td><td class="pn">BladeOps</td><td class="wn">6</td><td>2</td><td style="color:#aaa">$125</td></tr>
-          <tr><td><span class="rk b">03</span></td><td class="pn">CryptoRaze</td><td class="wn">5</td><td>2</td><td style="color:#8B6914">$50</td></tr>
-          <tr><td><span class="rk">04</span></td><td class="pn">NullXect</td><td class="wn">4</td><td>3</td><td style="color:#333">—</td></tr>
-          <tr><td><span class="rk">05</span></td><td class="pn">GhostFrag</td><td class="wn">3</td><td>2</td><td style="color:#333">—</td></tr>
+          <tr><td><span class="rk g">01</span></td><td class="pn">VortexR6</td><td class="wn">8</td><td>1</td><td style="color:var(--yellow)">$420</td></tr>
+          <tr><td><span class="rk s">02</span></td><td class="pn">BladeOps</td><td class="wn">6</td><td>2</td><td style="color:#aaa">$180</td></tr>
+          <tr><td><span class="rk b">03</span></td><td class="pn">CryptoRaze</td><td class="wn">5</td><td>2</td><td style="color:#666">—</td></tr>
+          <tr><td><span class="rk">04</span></td><td class="pn">NullXect</td><td class="wn">4</td><td>3</td><td style="color:#777">—</td></tr>
+          <tr><td><span class="rk">05</span></td><td class="pn">GhostFrag</td><td class="wn">3</td><td>2</td><td style="color:#777">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -397,19 +438,18 @@ footer{
 <!-- PAYOUTS -->
 <section id="payouts">
   <div class="section-inner">
-    <div class="sec-header fade-up"><div class="sec-title">PAYOUTS</div><div class="badge">Season 2</div></div>
+    <div class="sec-header fade-up"><div class="sec-title">EXAMPLE PAYOUTS</div><div class="badge">Season 2</div></div>
     <div class="prize-banner fade-up">
       <div class="prize-lbl">Current Prize Pool</div>
-      <div class="prize-amt">$500</div>
-      <div class="prize-note">32 players &times; $25 entry fee &nbsp;&bull;&nbsp; Distributed within 48hrs via Stripe</div>
+      <div class="prize-amt">$600</div>
+      <div class="prize-note">32 teams &times; $25 entry fee &nbsp;&bull;&nbsp; Distributed within 48hrs via Stripe</div>
     </div>
-    <div class="podiums fade-up">
-      <div class="pod p1"><div class="pod-icon">&#x1F947;</div><div class="pod-rank">1st Place</div><div class="pod-pct">50%</div><div class="pod-amt">$250</div></div>
-      <div class="pod p2"><div class="pod-icon">&#x1F948;</div><div class="pod-rank">2nd Place</div><div class="pod-pct">25%</div><div class="pod-amt">$125</div></div>
-      <div class="pod p3"><div class="pod-icon">&#x1F949;</div><div class="pod-rank">3rd Place</div><div class="pod-pct">10%</div><div class="pod-amt">$50</div></div>
+    <div class="podiums fade-up" style="grid-template-columns:1fr 1fr;max-width:700px;margin:0 auto">
+      <div class="pod p1"><div class="pod-icon">&#x1F947;</div><div class="pod-rank">1st Place</div><div class="pod-pct">70%</div><div class="pod-amt" style="font-family:'Orbitron',sans-serif;font-size:28px;color:var(--yellow)">$420</div></div>
+      <div class="pod p2"><div class="pod-icon">&#x1F948;</div><div class="pod-rank">2nd Place</div><div class="pod-pct">30%</div><div class="pod-amt" style="font-family:'Orbitron',sans-serif;font-size:28px;color:#aaa">$180</div></div>
     </div>
     <div class="payout-note fade-up">
-      Payouts distributed via Stripe within 48 hours of tournament close. Entry fees collected at registration. Remaining 15% covers platform operating costs. All payout disputes handled via Discord admin ticket. Players must have a verified Stripe-compatible payment method to receive winnings.
+      Payouts distributed via Stripe within 48 hours of tournament close. Entry fees collected at Discord registration. All payout disputes handled via Discord admin ticket. Players must have a verified Stripe-compatible payment method to receive winnings.
     </div>
   </div>
 </section>
@@ -425,7 +465,7 @@ footer{
         <div class="merch-img"><img src="data:image/png;base64,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" alt="Chaos tee"/></div>
         <div class="merch-info">
           <div class="merch-name">Chaos Tournament Tee</div>
-          <div class="merch-price">$29.99</div>
+          <div class="merch-price">Coming Soon</div>
           <button class="merch-btn">Add to Cart</button>
         </div>
       </div>
@@ -433,7 +473,7 @@ footer{
         <div class="merch-img"><img src="data:image/png;base64,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" alt="Chaos hoodie"/></div>
         <div class="merch-info">
           <div class="merch-name">Chaos Hoodie</div>
-          <div class="merch-price">$54.99</div>
+          <div class="merch-price">Coming Soon</div>
           <button class="merch-btn">Add to Cart</button>
         </div>
       </div>
@@ -441,7 +481,15 @@ footer{
         <div class="merch-img"><img src="data:image/png;base64,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" alt="Chaos snapback"/></div>
         <div class="merch-info">
           <div class="merch-name">Chaos Snapback Cap</div>
-          <div class="merch-price">$24.99</div>
+          <div class="merch-price">Coming Soon</div>
+          <button class="merch-btn">Add to Cart</button>
+        </div>
+      </div>
+      <div class="merch-card">
+        <div class="merch-img"><img src="data:image/png;base64,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" alt="Chaos backpack"/></div>
+        <div class="merch-info">
+          <div class="merch-name">Chaos Backpack</div>
+          <div class="merch-price">Coming Soon</div>
           <button class="merch-btn">Add to Cart</button>
         </div>
       </div>
@@ -456,15 +504,14 @@ footer{
   <div class="section-inner">
     <div class="sec-header fade-up"><div class="sec-title">RULES</div><div class="badge">R6 Official Format</div></div>
     <ul class="rules-list fade-up">
-      <li class="rule-item"><span class="rule-id">R1</span><div><span class="rule-title">Match Format</span>Best of 3 maps. Grand Final is Best of 5. Standard ranked settings, no house rules or custom operator restrictions unless announced.</div></li>
-      <li class="rule-item"><span class="rule-id">R2</span><div><span class="rule-title">Platform &amp; Region</span>PC only. North American servers. All players must be registered and have paid entry before match start time.</div></li>
+      <li class="rule-item"><span class="rule-id">R1</span><div><span class="rule-title">Match Format</span>Best of 1 map, until Final, then Best of 3. Pro League settings.</div></li>
+      <li class="rule-item"><span class="rule-id">R2</span><div><span class="rule-title">Platform &amp; Region</span>PC, Xbox, PS4/PS5. Platform declared at registration. North American servers.</div></li>
       <li class="rule-item"><span class="rule-id">R3</span><div><span class="rule-title">Zero Tolerance</span>Cheating software, exploits, and unsportsmanlike conduct result in immediate disqualification with no refund. No exceptions.</div></li>
-      <li class="rule-item"><span class="rule-id">R4</span><div><span class="rule-title">Double Elimination</span>All players get a second chance via the losers bracket. Losers bracket finalist must defeat the winners bracket finalist twice in the Grand Final.</div></li>
-      <li class="rule-item"><span class="rule-id">R5</span><div><span class="rule-title">Scheduling</span>Match times posted 24 hours in advance. No-shows after 10 minutes result in forfeit. Contact an admin immediately for emergencies.</div></li>
-      <li class="rule-item"><span class="rule-id">R6</span><div><span class="rule-title">Dispute Resolution</span>All disputes handled via Discord admin ticket within 15 minutes of incident. Admin ruling is final and binding.</div></li>
+      <li class="rule-item"><span class="rule-id">R4</span><div><span class="rule-title">Scheduling</span>Match times posted 24 hours in advance. No-shows after 15 minutes result in forfeit. Contact admin immediately for emergencies.</div></li>
+      <li class="rule-item"><span class="rule-id">R5</span><div><span class="rule-title">Dispute Resolution</span>All disputes handled via Discord admin ticket. Admin ruling is final.</div></li>
     </ul>
     <div class="discord-cta fade-up">
-      <p>Full Rainbow Six Siege official rulebook, operator restrictions, and all tournament-specific amendments are pinned in our Discord server.</p>
+      <p>Full Chaos Tournaments official rulebook, operator restrictions, and all tournament-specific amendments are pinned in our Discord server.</p>
       <button class="btn-discord" style="margin:0 auto;font-size:14px;padding:13px 32px">
         <svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
         View Full Rules on Discord
@@ -472,6 +519,42 @@ footer{
     </div>
   </div>
 </section>
+
+<div class="section-divider"></div>
+
+<section id="grudge" style="padding:90px 40px">
+  <div class="section-inner">
+    <div class="sec-header fade-up">
+      <div class="sec-title">GRUDGE MATCHES</div>
+      <div class="badge">Custom</div>
+    </div>
+    <div class="fade-up" style="text-align:center;margin-bottom:40px">
+      <div style="font-family:'Orbitron',sans-serif;font-size:clamp(20px,4vw,36px);font-weight:900;color:var(--yellow);text-shadow:0 0 30px rgba(255,215,0,.2);margin-bottom:12px;line-height:1.3">Got a beef with a buddy?<br>Settle it here.</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:clamp(18px,3vw,26px);font-weight:700;color:#ddd;letter-spacing:.04em;margin-bottom:24px">You dictate the terms. <span style="color:var(--yellow)">NOW!</span></div>
+      <p style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;color:#bbb;max-width:560px;margin:0 auto 40px;line-height:1.7">Custom tournaments for friends, rivals, and enemies. Challenge anyone to a Rainbow Six Siege showdown &mdash; <em style="color:var(--yellow);font-style:normal">on your terms</em>, for whatever stakes you set.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:700px;margin:0 auto 36px" class="fade-up">
+      <div style="background:var(--dark);border:1px solid #1c1c1c;border-radius:4px;padding:24px;text-align:center"><div style="font-size:28px;margin-bottom:10px">💰</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--yellow);letter-spacing:.06em;margin-bottom:6px">Any Stakes</div><div style="font-family:'Rajdhani',sans-serif;font-size:14px;color:#ccc;line-height:1.5">$5 or $500 — you decide what's on the line.</div></div>
+      <div style="background:var(--dark);border:1px solid #1c1c1c;border-radius:4px;padding:24px;text-align:center"><div style="font-size:28px;margin-bottom:10px">🎮</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--yellow);letter-spacing:.06em;margin-bottom:6px">Any Platform</div><div style="font-family:'Rajdhani',sans-serif;font-size:14px;color:#ccc;line-height:1.5">PC, Xbox, PS4/PS5, cross-platform allowed.</div></div>
+      <div style="background:var(--dark);border:1px solid #1c1c1c;border-radius:4px;padding:24px;text-align:center"><div style="font-size:28px;margin-bottom:10px">⚔️</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--yellow);letter-spacing:.06em;margin-bottom:6px">Any Format</div><div style="font-family:'Rajdhani',sans-serif;font-size:14px;color:#ccc;line-height:1.5">1v1, 5v5, bracket — you build the format.</div></div>
+      <div style="background:var(--dark);border:1px solid #1c1c1c;border-radius:4px;padding:24px;text-align:center"><div style="font-size:28px;margin-bottom:10px">📋</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--yellow);letter-spacing:.06em;margin-bottom:6px">Your Rules</div><div style="font-family:'Rajdhani',sans-serif;font-size:14px;color:#ccc;line-height:1.5">Custom bans, map pools — all yours to set.</div></div>
+    </div>
+    <div style="background:#0b0b00;border:1px solid rgba(255,215,0,.18);border-radius:4px;padding:28px;max-width:700px;margin:0 auto 36px" class="fade-up">
+      <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--yellow);letter-spacing:.1em;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,215,0,.12)">⚔ HOW IT WORKS</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:#ccc;line-height:2">
+        <div style="padding:8px 0;border-bottom:1px solid #111"><span style="font-family:'Orbitron',sans-serif;color:#aaa;font-size:11px;margin-right:12px">01</span><span style="color:var(--yellow);font-weight:700">Challenge Your Rival</span> — Open a grudge ticket in Discord. Name your opponent, set your terms.</div>
+        <div style="padding:8px 0;border-bottom:1px solid #111"><span style="font-family:'Orbitron',sans-serif;color:#aaa;font-size:11px;margin-right:12px">02</span><span style="color:var(--yellow);font-weight:700">Lock In the Stakes</span> — Both sides deposit via Stripe. Funds held until verified.</div>
+        <div style="padding:8px 0;border-bottom:1px solid #111"><span style="font-family:'Orbitron',sans-serif;color:#aaa;font-size:11px;margin-right:12px">03</span><span style="color:var(--yellow);font-weight:700">Play on Your Terms</span> — Any format you agreed on. Admins verify the result.</div>
+        <div style="padding:8px 0"><span style="font-family:'Orbitron',sans-serif;color:#aaa;font-size:11px;margin-right:12px">04</span><span style="color:var(--yellow);font-weight:700">Winner Takes ALL</span> — 100% to WINNER. Paid via Stripe within 48hrs.</div>
+      </div>
+    </div>
+    <div class="fade-up" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSeWUZHHQcAITgzaem6mBMABFFPN3htDJ-T2UUTSi62wWXPumA/viewform" target="_blank" rel="noopener" class="btn-primary" style="min-width:220px;padding:15px 32px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center">⚔ Start a Grudge Match</a>
+      <a href="https://discord.gg/UAvgJeNQUm" target="_blank" rel="noopener" class="btn-primary" style="min-width:220px;padding:15px 32px;background:transparent;color:var(--yellow);border:2px solid var(--yellow);text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Learn More on Discord</a>
+    </div>
+  </div>
+</section>
+
 
 <!-- FOOTER -->
 <footer>
@@ -484,6 +567,7 @@ footer{
     <a href="#payouts">Payouts</a>
     <a href="#merch">Merch</a>
     <a href="#rules">Rules</a>
+    <a href="#grudge">Grudge</a>
   </div>
   <div class="footer-copy">&copy; 2026 Chaos Tournaments. All rights reserved.</div>
 </footer>
@@ -496,14 +580,12 @@ footer{
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 500);
   camera.position.set(0, 0, 5);
 
   function resize(){
-    const w = canvas.parentElement.offsetWidth;
-    const h = canvas.parentElement.offsetHeight;
-    renderer.setSize(w, h, false);
-    camera.aspect = w/h;
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
   }
   resize();
@@ -511,21 +593,21 @@ footer{
 
   // Gold particle field
   const geo = new THREE.BufferGeometry();
-  const N = 1200;
+  const N = 10800;
   const pos = new Float32Array(N*3);
   const speeds = new Float32Array(N);
   for(let i=0;i<N;i++){
-    pos[i*3]   = (Math.random()-0.5)*20;
-    pos[i*3+1] = (Math.random()-0.5)*12;
-    pos[i*3+2] = (Math.random()-0.5)*8;
-    speeds[i]  = 0.002 + Math.random()*0.006;
+    pos[i*3]   = (Math.random()-0.5)*30;
+    pos[i*3+1] = (Math.random()-0.5)*130;
+    pos[i*3+2] = (Math.random()-0.5)*14;
+    speeds[i]  = 0.005 + Math.random()*0.015;
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  const mat = new THREE.PointsMaterial({color:0xFFD700, size:0.04, transparent:true, opacity:0.55});
+  const mat = new THREE.PointsMaterial({color:0xFFD700, size:0.04, transparent:true, opacity:0.65});
   const pts = new THREE.Points(geo, mat);
   scene.add(pts);
 
-  // Floating geometry - crossed sword shapes (elongated octahedra)
+  /* Floating geometry - crossed sword shapes (elongated octahedra)
   function makeSword(x,y,z,ry){
     const g = new THREE.OctahedronGeometry(0.06, 0);
     const m = new THREE.MeshBasicMaterial({color:0xFFD700, wireframe:true, transparent:true, opacity:0.25});
@@ -541,23 +623,41 @@ footer{
     grp.rotation.z = Math.PI/4;
     return grp;
   }
-
+  
   const swords = [
-    makeSword(-1.2, 0.8, -1, Math.PI*0.1),
-    makeSword(1.2, 0.8, -1, -Math.PI*0.1),
-    makeSword(-1.2, -0.8, -1, Math.PI*0.05),
-    makeSword(1.2, -0.8, -1, -Math.PI*0.05),
+    makeSword(-1.2,   0.8, -1,  Math.PI*0.10),
+    makeSword( 1.2,   0.8, -1, -Math.PI*0.10),
+    makeSword(-1.2,  -0.8, -1,  Math.PI*0.05),
+    makeSword( 1.2,  -0.8, -1, -Math.PI*0.05),
+    makeSword(-2.2,  -8.0, -2,  Math.PI*0.15),
+    makeSword( 2.2,  -8.0, -2, -Math.PI*0.15),
+    makeSword(-1.8, -16.0, -1,  Math.PI*0.08),
+    makeSword( 1.8, -16.0, -1, -Math.PI*0.08),
+    makeSword(-2.5, -24.0, -3,  Math.PI*0.12),
+    makeSword( 2.5, -24.0, -3, -Math.PI*0.12),
+    makeSword(-1.5, -32.0, -1,  Math.PI*0.06),
+    makeSword( 1.5, -32.0, -1, -Math.PI*0.06),
+    makeSword(-2.0, -40.0, -2,  Math.PI*0.14),
+    makeSword( 2.0, -40.0, -2, -Math.PI*0.14),
+    makeSword(-1.8, -48.0, -1,  Math.PI*0.09),
+    makeSword( 1.8, -48.0, -1, -Math.PI*0.09),
+    makeSword(-2.2, -56.0, -2,  Math.PI*0.11),
+    makeSword( 2.2, -56.0, -2, -Math.PI*0.11),
+    makeSword(-1.5, -64.0, -1,  Math.PI*0.07),
+    makeSword( 1.5, -64.0, -1, -Math.PI*0.07),
+    makeSword(-2.0, -72.0, -2,  Math.PI*0.13),
+    makeSword( 2.0, -72.0, -2, -Math.PI*0.13),
   ];
-  swords.forEach(s => scene.add(s));
+  swords.forEach(s => scene.add(s)); */
 
-  // Crown-like ring
+  /* Crown-like ring
   const ringGeo = new THREE.TorusGeometry(0.8, 0.015, 8, 48);
   const ringMat = new THREE.MeshBasicMaterial({color:0xFFD700, transparent:true, opacity:0.12});
   const ring = new THREE.Mesh(ringGeo, ringMat);
   ring.position.set(0,0,-1);
-  scene.add(ring);
+  scene.add(ring); */
 
-  // Lightning bolt line
+  /* Lightning bolt line
   const lpts = [
     new THREE.Vector3(0.1, 0.6, -0.5),
     new THREE.Vector3(-0.05, 0.1, -0.5),
@@ -567,38 +667,48 @@ footer{
   const lGeo = new THREE.BufferGeometry().setFromPoints(lpts);
   const lMat = new THREE.LineBasicMaterial({color:0xFFD700, transparent:true, opacity:0.4});
   const bolt = new THREE.Line(lGeo, lMat);
-  scene.add(bolt);
+  scene.add(bolt); */
+
+  let cachedMaxScroll = document.body.scrollHeight - window.innerHeight;
+  window.addEventListener('resize', () => {
+    cachedMaxScroll = document.body.scrollHeight - window.innerHeight;
+  });
 
   let t = 0;
   function animate(){
     requestAnimationFrame(animate);
-    t += 0.01;
+    t += 0.01;  
 
     // Drift particles upward
     const positions = geo.attributes.position.array;
     for(let i=0;i<N;i++){
       positions[i*3+1] += speeds[i];
-      if(positions[i*3+1] > 6) positions[i*3+1] = -6;
+      if(positions[i*3+1] > 65) positions[i*3+1] = -65;
     }
     geo.attributes.position.needsUpdate = true;
 
-    // Rotate swords slowly
+    /* Rotate swords slowly
     swords.forEach((s,i) => {
       s.rotation.z = Math.PI/4 + Math.sin(t*0.4 + i)*0.08;
       s.position.y += Math.sin(t*0.6 + i*1.5)*0.001;
-    });
+    }); */
 
-    // Breathe ring
+    /* Breathe ring
     ring.rotation.z = t*0.15;
-    ring.scale.setScalar(1 + Math.sin(t*0.7)*0.04);
+    ring.scale.setScalar(1 + Math.sin(t*0.7)*0.04); */
 
-    // Pulse bolt
-    lMat.opacity = 0.2 + Math.abs(Math.sin(t*2))*0.35;
+    /* // Pulse bolt
+    lMat.opacity = 0.2 + Math.abs(Math.sin(t*2))*0.35; */
 
     // Gentle camera sway
     camera.position.x = Math.sin(t*0.12)*0.3;
-    camera.position.y = Math.sin(t*0.09)*0.15;
-    camera.lookAt(0,0,0);
+
+    // Scroll-driven camera — travels from footer (bottom) to header (top)
+    const _maxScroll = document.body.scrollHeight - window.innerHeight;
+    const _pct = _maxScroll > 0 ? window.scrollY / _maxScroll : 0;
+    const _targetY = _pct * -75;
+    camera.position.y += (_targetY - camera.position.y) * 0.05;
+    camera.lookAt(0, camera.position.y, 0);
 
     renderer.render(scene, camera);
   }
@@ -612,7 +722,7 @@ const obs = new IntersectionObserver((entries)=>{
 document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
 
 // ── NAV ACTIVE ON SCROLL ──
-const sections = ['hero','brackets','payouts','merch','rules'];
+const sections = ['hero','brackets','payouts','merch','rules','grudge'];
 window.addEventListener('scroll',()=>{
   let cur='hero';
   sections.forEach(id=>{
@@ -629,5 +739,87 @@ function setActive(el){
   el.classList.add('active');
 }
 </script>
+
+<!-- ── SUPABASE DISCORD AUTH ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://cgpdrynqukzkyriqacnr.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_8z9CRfwgE61EtJhHuR7NjA_E1Ez4C5x";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.__sb = sb;
+
+  async function loginWithDiscord(){
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'discord',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if(error) console.error('Discord login error:', error);
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    window.location.reload();
+  }
+
+  window.handleDiscordAuthClick = async function(which){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      logout();
+    } else {
+      loginWithDiscord();
+    }
+  };
+
+  function renderLoggedIn(session){
+    const meta = session.user.user_metadata || {};
+    const username = meta.full_name || meta.name || meta.user_name || meta.custom_claims?.global_name || 'Player';
+    const avatar = meta.avatar_url || '';
+
+    const navBtn = document.getElementById('nav-discord-btn');
+    if(navBtn){
+      navBtn.innerHTML = (avatar ? `<img src="${avatar}" style="width:20px;height:20px;border-radius:50%;margin-right:7px;vertical-align:middle">` : '') + username;
+      navBtn.title = 'Click to log out';
+    }
+
+    const heroBtn = document.getElementById('hero-discord-btn');
+    if(heroBtn){
+      heroBtn.innerHTML = (avatar ? `<img src="${avatar}" style="width:18px;height:18px;border-radius:50%;margin-right:7px;vertical-align:middle">` : '') + `Welcome, ${username} (Logout)`;
+    }
+  }
+
+  function renderLoggedOut(){
+    const navBtn = document.getElementById('nav-discord-btn');
+    if(navBtn){
+      navBtn.innerHTML = `<svg width="14" height="11" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>\n    Login with Discord`;
+      navBtn.title = '';
+    }
+    const heroBtn = document.getElementById('hero-discord-btn');
+    if(heroBtn){
+      heroBtn.innerHTML = `<svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>\n        Register with Discord`;
+    }
+  }
+
+  async function initAuthUI(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      renderLoggedIn(session);
+    } else {
+      renderLoggedOut();
+    }
+  }
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    if(session && session.user){
+      renderLoggedIn(session);
+    } else {
+      renderLoggedOut();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', initAuthUI);
+})();
+</script>
+
 </body>
 </html>
