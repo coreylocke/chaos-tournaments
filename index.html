@@ -358,7 +358,7 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
     <li><a href="#rules" onclick="setActive(this)">Rules</a></li>
     <li><a href="#grudge" onclick="setActive(this)" style="color:var(--yellow)">Grudge</a></li>
   </ul>
-  <button class="btn-discord">
+  <button id="nav-discord-btn" class="btn-discord" onclick="handleDiscordAuthClick('nav')">
     <svg width="14" height="11" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
     Login with Discord
   </button>
@@ -369,11 +369,11 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
   <div class="hero-content">
     <img class="hero-logo" src="data:image/png;base64,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" alt="Chaos Tournaments"/>
     <div class="hero-title">CHAOS TOURNAMENTS</div>
-    <div class="hero-sub">Rainbow Six Siege &bull; PC &bull; Xbox &bull; PS4/PS5 &bull; Cash Prizes</div>
+    <div class="hero-sub">Rainbow Six Siege Tournament Play &bull; Turn Skills Into Cash  &bull; PC &bull; Xbox &bull; PS4/PS5</div>
     <div class="hero-tagline">Where <em>chaos</em> crowns champions.<br>Enter the arena. Prove your rank.</div>
     <div class="hero-ctas">
       <button class="btn-primary" onclick="location.href='#brackets'">View Brackets</button>
-      <button class="btn-discord" style="font-size:14px;padding:15px 28px">
+      <button id="hero-discord-btn" class="btn-discord" style="font-size:14px;padding:15px 28px" onclick="handleDiscordAuthClick('hero')">
         <svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>
         Register with Discord
       </button>
@@ -549,8 +549,8 @@ footer{position:relative;z-index:10;background:rgba(5,5,5,0.92)}
       </div>
     </div>
     <div class="fade-up" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-      <button class="btn-primary" style="min-width:220px;padding:15px 32px">⚔ Start a Grudge Match</button>
-      <button class="btn-primary" style="min-width:220px;padding:15px 32px;background:transparent;color:var(--yellow);border:2px solid var(--yellow)">Learn More on Discord</button>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSeWUZHHQcAITgzaem6mBMABFFPN3htDJ-T2UUTSi62wWXPumA/viewform" target="_blank" rel="noopener" class="btn-primary" style="min-width:220px;padding:15px 32px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center">⚔ Start a Grudge Match</a>
+      <a href="https://discord.gg/UAvgJeNQUm" target="_blank" rel="noopener" class="btn-primary" style="min-width:220px;padding:15px 32px;background:transparent;color:var(--yellow);border:2px solid var(--yellow);text-decoration:none;display:inline-flex;align-items:center;justify-content:center">Learn More on Discord</a>
     </div>
   </div>
 </section>
@@ -739,5 +739,87 @@ function setActive(el){
   el.classList.add('active');
 }
 </script>
+
+<!-- ── SUPABASE DISCORD AUTH ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://cgpdrynqukzkyriqacnr.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_8z9CRfwgE61EtJhHuR7NjA_E1Ez4C5x";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.__sb = sb;
+
+  async function loginWithDiscord(){
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'discord',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if(error) console.error('Discord login error:', error);
+  }
+
+  async function logout(){
+    await sb.auth.signOut();
+    window.location.reload();
+  }
+
+  window.handleDiscordAuthClick = async function(which){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      logout();
+    } else {
+      loginWithDiscord();
+    }
+  };
+
+  function renderLoggedIn(session){
+    const meta = session.user.user_metadata || {};
+    const username = meta.full_name || meta.name || meta.user_name || meta.custom_claims?.global_name || 'Player';
+    const avatar = meta.avatar_url || '';
+
+    const navBtn = document.getElementById('nav-discord-btn');
+    if(navBtn){
+      navBtn.innerHTML = (avatar ? `<img src="${avatar}" style="width:20px;height:20px;border-radius:50%;margin-right:7px;vertical-align:middle">` : '') + username;
+      navBtn.title = 'Click to log out';
+    }
+
+    const heroBtn = document.getElementById('hero-discord-btn');
+    if(heroBtn){
+      heroBtn.innerHTML = (avatar ? `<img src="${avatar}" style="width:18px;height:18px;border-radius:50%;margin-right:7px;vertical-align:middle">` : '') + `Welcome, ${username} (Logout)`;
+    }
+  }
+
+  function renderLoggedOut(){
+    const navBtn = document.getElementById('nav-discord-btn');
+    if(navBtn){
+      navBtn.innerHTML = `<svg width="14" height="11" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>\n    Login with Discord`;
+      navBtn.title = '';
+    }
+    const heroBtn = document.getElementById('hero-discord-btn');
+    if(heroBtn){
+      heroBtn.innerHTML = `<svg width="16" height="12" viewBox="0 0 14 11" fill="white"><path d="M11.86 1A11.4 11.4 0 0 0 9.12.1a7.7 7.7 0 0 0-.37.73 10.6 10.6 0 0 0-3.5 0A7.7 7.7 0 0 0 4.88.1 11.4 11.4 0 0 0 2.14 1 11.73 11.73 0 0 0 .1 8.7a11.5 11.5 0 0 0 3.5 1.72c.28-.37.53-.77.74-1.18a7.4 7.4 0 0 1-1.16-.55l.27-.2a8.28 8.28 0 0 0 6.9 0l.27.2a7.4 7.4 0 0 1-1.17.55c.21.41.46.81.74 1.18a11.5 11.5 0 0 0 3.5-1.72A11.73 11.73 0 0 0 11.86 1ZM4.68 7.14c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Zm4.64 0c-.74 0-1.35-.66-1.35-1.48s.59-1.48 1.35-1.48c.76 0 1.37.66 1.36 1.48 0 .82-.6 1.48-1.36 1.48Z"/></svg>\n        Register with Discord`;
+    }
+  }
+
+  async function initAuthUI(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      renderLoggedIn(session);
+    } else {
+      renderLoggedOut();
+    }
+  }
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    if(session && session.user){
+      renderLoggedIn(session);
+    } else {
+      renderLoggedOut();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', initAuthUI);
+})();
+</script>
+
 </body>
 </html>
