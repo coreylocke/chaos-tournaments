@@ -88,6 +88,7 @@ nav{
   text-align:center;padding:80px clamp(20px,5vw,48px) 40px;overflow:hidden;
 }
 #three-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;will-change:transform}
+#three-canvas canvas{display:block;width:100%!important;height:100%!important}
 .hero-content{position:relative;z-index:2;max-width:700px}
 .hero-logo{
   width:clamp(80px,12vw,140px);height:clamp(80px,12vw,140px);object-fit:contain;
@@ -430,6 +431,7 @@ footer{
 
 <!-- HERO -->
 <section id="hero">
+  <div id="three-canvas"></div>
   <div class="hero-content">
     <svg class="hero-logo" viewBox="0 0 80 80" fill="none">
       <circle cx="40" cy="40" r="38" stroke="#FFD700" stroke-width="2" opacity=".4"/>
@@ -916,8 +918,73 @@ function handleAuth(source){
 }
 </script>
 
-<!-- Three.js from CDN (deferred, loaded after critical content) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<!-- Three.js + Gold Particle Field (deferred) -->
+<script defer>
+(function(){
+  if(!window.THREE){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.onload=initParticles;
+    document.head.appendChild(s);
+  }else{initParticles()}
+  function initParticles(){
+    var canvas=document.getElementById('three-canvas');
+    if(!canvas)return;
+    var scene=new THREE.Scene();
+    var cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,1,1000);
+    cam.position.z=300;
+    var renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    canvas.appendChild(renderer.domElement);
+    var count=window.innerWidth<768?4000:10000;
+    var geo=new THREE.BufferGeometry();
+    var pos=new Float32Array(count*3);
+    var sizes=new Float32Array(count);
+    var gold=new THREE.Color('#FFD700');
+    for(var i=0;i<count;i++){
+      pos[i*3]=Math.random()*600-300;
+      pos[i*3+1]=Math.random()*600-300;
+      pos[i*3+2]=Math.random()*600-300;
+      sizes[i]=Math.random()*2+0.5;
+    }
+    geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('size',new THREE.BufferAttribute(sizes,1));
+    var mat=new THREE.PointsMaterial({
+      color:gold,size:1.2,transparent:true,opacity:0.6,
+      blending:THREE.AdditiveBlending,depthWrite:false,
+      sizeAttenuation:true
+    });
+    var particles=new THREE.Points(geo,mat);
+    scene.add(particles);
+    var mouse={x:0,y:0};
+    document.addEventListener('mousemove',function(e){
+      mouse.x=(e.clientX/window.innerWidth-0.5)*0.3;
+      mouse.y=(e.clientY/window.innerHeight-0.5)*0.3;
+    });
+    var time=0;
+    function animate(){
+      requestAnimationFrame(animate);
+      time+=0.002;
+      particles.rotation.x+=0.0003+mouse.y*0.0005;
+      particles.rotation.y+=0.0005+mouse.x*0.0005;
+      var p=particles.geometry.attributes.position.array;
+      for(var i=0;i<p.length;i+=3){
+        p[i+1]+=Math.sin(time+p[i]*0.01)*0.03;
+        p[i]+=Math.cos(time+p[i+1]*0.01)*0.02;
+      }
+      particles.geometry.attributes.position.needsUpdate=true;
+      renderer.render(scene,cam);
+    }
+    animate();
+    window.addEventListener('resize',function(){
+      cam.aspect=window.innerWidth/window.innerHeight;
+      cam.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth,window.innerHeight);
+    });
+  }
+})();
+</script>
 
 </body>
 </html>
