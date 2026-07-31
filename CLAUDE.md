@@ -4,9 +4,9 @@
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a Phase 2 milestone added once Phase 1 shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b Phase 2 and Phase 3 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules) and 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), and 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7).
 
 **Last updated**: 2026-07-31
 
@@ -28,6 +28,12 @@ These aren't in the original brief — they were decided in conversation and thi
 - **Team invitations require an existing account.** `team_invitations.invited_user_id` is a non-null FK to `users` — you can only invite someone who has already logged in with Discord at least once. This doesn't weaken the payout-entitlement rule (entitlement only ever attaches to whoever pays, which already requires being logged in); it's purely to avoid the added complexity of linking a pending invite to an account that doesn't exist yet. Revisit if unregistered-user invites turn out to matter in practice.
 - **Phase 2 includes a *minimal* tournament-registration trigger, not the full Phase 4 flow.** The brief's Phase 2 description lists "registration entry slots," which can't exist without a `tournament_registrations` row — so Phase 2 adds a bare "register this team for this tournament" action (validates division/platform/starter-count, creates the registration, snapshots the roster into `registration_rosters`, generates `registration_entry_slots`). The polished experience — dedicated `/tournaments/[slug]` pages, rules acceptance, check-in, the full registration stepper, success-screen buttons — stays Phase 4 work per the brief's own split.
 - **`maximum_coaches`/`maximum_managers` added to `tournaments`.** The brief's Section 19 calls for both; the original schema pass here omitted them. Added as `int not null default 1` each, enforced by the same roster-validation logic that checks `maximum_substitutes`/`maximum_reserves`.
+
+**Phase 3 planning decisions (2026-07-31)**:
+
+- **`tournament_registrations.status` was missing `'payment_review'`.** Section 13's webhook flow explicitly targets that status on verification failure, but the CHECK constraint from the original schema pass never included it. Added via migration.
+- **Entry funding is captain-only for this pass, not the full sponsor-link model.** The brief describes a standalone `/pay/[entry-link]` flow letting any authorized third party (not just team members) fund an entry via a shareable link — but that requires a link/token mechanism nowhere specified in the schema. This pass lets the team captain pay for any of their team's unpaid entries (covering "pay for self" and "pay for teammates" from Section 20's wireframe) using the same RLS-visibility the captain already has from Phase 2. The standalone sponsor-link flow for non-team-members is deferred to a later pass.
+- **`payout_entitlements` (the separate table) is not created yet.** The Stripe webhook sets `registration_entry_slots.payout_entitlement_user_id`/`entitlement_status` directly, matching Section 13's literal webhook-flow wording. The dedicated `payout_entitlements` table (needed for `entitlement_transfers` and formal payout calculation) is deferred to Phase 7 ("Prize Allocation and Payouts"), where it's actually exercised.
 
 ---
 
@@ -1157,6 +1163,23 @@ Matches Build Phase 2 ("Rosters and Entry Slots") from Chaos \- Build Plan and B
 6. Entry Funding screen: read-only view of each slot's unpaid/paid status. No checkout, no payment, no Stripe code — that's Phase 3 ("Payments and Sponsorship") per the brief's own phase split.
 
 **Acceptance criteria**: a captain can invite a player, the player can accept, the roster can be built up to a valid starting lineup, the team can register for a tournament, and the registration produces the correct number of unpaid entry slots — with zero Stripe/checkout code written yet.
+
+**Status**: reviewed and complete as of 2026-07-31.
+
+## 25b\. Third implementation milestone
+
+Matches the core-payment-loop slice of Build Phase 3 ("Payments and Sponsorship") from Chaos \- Build Plan and Business Rules, scoped per the Phase 3 planning decisions in Section 0 above:
+
+1. `payments`, `payment_entry_allocations`, `payment_events` tables per Section 3 DDL.
+2. Entry-selection UI on the Entry Funding screen (`/teams/[id]/entries`): captain selects unpaid entries to pay, running total shown, explicit payout-entitlement language before payment per Section 20.
+3. Checkout locking: selected slots lock (`checkout_lock_status = 'locked_for_checkout'`, 30-minute expiry matching the Stripe Checkout Session's own expiry) before the Stripe session is created; a partial lock claim rolls back cleanly.
+4. Stripe Checkout Session creation: server-calculated total (never trusts the client), one line item per entry, dynamic payment methods (no hardcoded `payment_method_types`), the metadata fields from Section 12.
+5. Webhook handler (`/api/stripe/webhook`) for `checkout.session.completed` and `checkout.session.expired`: signature verification, idempotency via a unique constraint on `stripe_event_id`, full re-validation of slot eligibility and amount before marking anything paid, funding-status recalculation, and the verification-failure path (`payment_mismatch`/`admin_review`/`payment_review`) per Section 13.
+6. `/payment/success` and `/payment/cancelled` pages — informational only, per "the browser redirect never marks anything paid."
+
+**Deliberately not included** (deferred to a later pass): the standalone `/pay/[entry-link]` sponsor flow for non-team-members, a dedicated sponsor dashboard, downloadable receipts/PDFs, refunds, and chargebacks.
+
+**Acceptance criteria**: a captain can select one or more unpaid entries, complete a real Stripe test-mode Checkout session, and have the webhook correctly mark those entries paid, set the payout entitlement to the payer, and recalculate the registration's funding status — verified end-to-end against a live Stripe test-mode Checkout page, not just the API.
 
 ---
 

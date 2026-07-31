@@ -1,13 +1,17 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/currentUser";
 import { createClient } from "@/lib/supabase/server";
+import { EntryPaymentForm } from "./EntryPaymentForm";
 
 export default async function TeamEntriesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { id } = await params;
+  const { error } = await searchParams;
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/teams/${id}/entries`);
 
@@ -46,9 +50,15 @@ export default async function TeamEntriesPage({
       <div>
         <h1 className="text-2xl font-semibold">{team.team_name} — Entries</h1>
         <p className="text-sm text-zinc-500">
-          Entry funding status per tournament registration. Payment isn&apos;t available yet.
+          Pay for unpaid entries below, for yourself or on behalf of teammates.
         </p>
       </div>
+
+      {error && (
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+          {error}
+        </p>
+      )}
 
       {!registrations?.length && (
         <p className="text-sm text-zinc-500">No tournament registrations yet.</p>
@@ -61,10 +71,11 @@ export default async function TeamEntriesPage({
         const regSlots = (slots ?? []).filter(
           (s) => s.registration_id === reg.registration_id
         );
+        const unpaidSlots = regSlots.filter((s) => s.payment_status === "unpaid");
 
         return (
-          <div key={reg.registration_id}>
-            <div className="mb-2 flex items-center justify-between">
+          <div key={reg.registration_id} className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
               <h2 className="text-lg font-medium">{tournamentName}</h2>
               <span className="text-xs capitalize text-zinc-500">
                 {reg.funding_status.replace(/_/g, " ")}
@@ -85,11 +96,15 @@ export default async function TeamEntriesPage({
                         : "text-zinc-500"
                     }
                   >
-                    {slot.payment_status}
+                    {slot.payment_status.replace(/_/g, " ")}
                   </span>
                 </li>
               ))}
             </ul>
+
+            {unpaidSlots.length > 0 && (
+              <EntryPaymentForm teamId={id} unpaidSlots={unpaidSlots} />
+            )}
           </div>
         );
       })}

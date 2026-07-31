@@ -77,6 +77,127 @@ export type Database = {
           },
         ]
       }
+      payment_entry_allocations: {
+        Row: {
+          allocation_id: string
+          amount_cents: number
+          created_at: string
+          entry_slot_id: string
+          payment_id: string
+        }
+        Insert: {
+          allocation_id?: string
+          amount_cents: number
+          created_at?: string
+          entry_slot_id: string
+          payment_id: string
+        }
+        Update: {
+          allocation_id?: string
+          amount_cents?: number
+          created_at?: string
+          entry_slot_id?: string
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_entry_allocations_entry_slot_id_fkey"
+            columns: ["entry_slot_id"]
+            isOneToOne: false
+            referencedRelation: "registration_entry_slots"
+            referencedColumns: ["entry_slot_id"]
+          },
+          {
+            foreignKeyName: "payment_entry_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["payment_id"]
+          },
+        ]
+      }
+      payment_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          payload: Json
+          payment_event_id: string
+          payment_id: string | null
+          processed_at: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          payload: Json
+          payment_event_id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          payload?: Json
+          payment_event_id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          stripe_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["payment_id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          payer_user_id: string
+          payment_id: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          payer_user_id: string
+          payment_id?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          payer_user_id?: string
+          payment_id?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_payer_user_id_fkey"
+            columns: ["payer_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       registration_entry_slots: {
         Row: {
           assigned_starter_user_id: string | null
