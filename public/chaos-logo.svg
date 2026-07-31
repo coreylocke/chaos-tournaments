@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <style>
+      .logo-mark { fill: #FFD700; }
+      .logo-mark-dark { fill: #C8A800; }
+    </style>
+  </defs>
+
+  <!-- SWORD 1: top-left to bottom-right (NW→SE) -->
+  <g transform="translate(200,200) rotate(-45)">
+    <!-- blade -->
+    <rect class="logo-mark" x="-6" y="-110" width="12" height="170" rx="2"/>
+    <!-- tip -->
+    <polygon class="logo-mark" points="0,-130 -6,-110 6,-110"/>
+    <!-- crossguard -->
+    <rect class="logo-mark-dark" x="-32" y="56" width="64" height="14" rx="3"/>
+    <!-- grip -->
+    <rect class="logo-mark-dark" x="-5" y="70" width="10" height="40" rx="2"/>
+    <!-- pommel -->
+    <circle class="logo-mark" cx="0" cy="116" r="9"/>
+  </g>
+
+  <!-- SWORD 2: top-right to bottom-left (NE→SW) -->
+  <g transform="translate(200,200) rotate(45)">
+    <!-- blade -->
+    <rect class="logo-mark" x="-6" y="-110" width="12" height="170" rx="2"/>
+    <!-- tip -->
+    <polygon class="logo-mark" points="0,-130 -6,-110 6,-110"/>
+    <!-- crossguard -->
+    <rect class="logo-mark-dark" x="-32" y="56" width="64" height="14" rx="3"/>
+    <!-- grip -->
+    <rect class="logo-mark-dark" x="-5" y="70" width="10" height="40" rx="2"/>
+    <!-- pommel -->
+    <circle class="logo-mark" cx="0" cy="116" r="9"/>
+  </g>
+
+  <!-- CROWN at top center -->
+  <g transform="translate(200, 108)">
+    <!-- crown base band -->
+    <rect class="logo-mark" x="-38" y="10" width="76" height="16" rx="2"/>
+    <!-- crown points: left, center-left, center, center-right, right -->
+    <polygon class="logo-mark" points="-38,10 -28,-18 -18,2 0,-26 18,2 28,-18 38,10"/>
+    <!-- crown jewels -->
+    <circle class="logo-mark-dark" cx="-24" cy="5" r="4"/>
+    <circle class="logo-mark-dark" cx="0" cy="5" r="4"/>
+    <circle class="logo-mark-dark" cx="24" cy="5" r="4"/>
+  </g>
+
+  <!-- LIGHTNING BOLT center -->
+  <g transform="translate(200,200)">
+    <polygon class="logo-mark" points="10,-38 -4,-4 6,-4 -10,38 4,4 -6,4"/>
+  </g>
+
+  <!-- SHIELD outline behind everything (subtle) -->
+  <!-- Decorative outer ring -->
+  <circle cx="200" cy="200" r="148" fill="none" stroke="#FFD700" stroke-width="3" stroke-dasharray="8,6" opacity="0.35"/>
+</svg>
