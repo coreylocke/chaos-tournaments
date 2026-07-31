@@ -77,6 +77,201 @@ export type Database = {
           },
         ]
       }
+      registration_entry_slots: {
+        Row: {
+          assigned_starter_user_id: string | null
+          checkout_lock_expires_at: string | null
+          checkout_lock_status: string
+          created_at: string
+          currency: string
+          entitlement_status: string
+          entry_fee_amount_cents: number
+          entry_slot_id: string
+          payer_user_id: string | null
+          payment_id: string | null
+          payment_status: string
+          payout_entitlement_user_id: string | null
+          registration_id: string
+          slot_number: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_starter_user_id?: string | null
+          checkout_lock_expires_at?: string | null
+          checkout_lock_status?: string
+          created_at?: string
+          currency?: string
+          entitlement_status?: string
+          entry_fee_amount_cents: number
+          entry_slot_id?: string
+          payer_user_id?: string | null
+          payment_id?: string | null
+          payment_status?: string
+          payout_entitlement_user_id?: string | null
+          registration_id: string
+          slot_number: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_starter_user_id?: string | null
+          checkout_lock_expires_at?: string | null
+          checkout_lock_status?: string
+          created_at?: string
+          currency?: string
+          entitlement_status?: string
+          entry_fee_amount_cents?: number
+          entry_slot_id?: string
+          payer_user_id?: string | null
+          payment_id?: string | null
+          payment_status?: string
+          payout_entitlement_user_id?: string | null
+          registration_id?: string
+          slot_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_entry_slots_assigned_starter_user_id_fkey"
+            columns: ["assigned_starter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "registration_entry_slots_payer_user_id_fkey"
+            columns: ["payer_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "registration_entry_slots_payout_entitlement_user_id_fkey"
+            columns: ["payout_entitlement_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "registration_entry_slots_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_registrations"
+            referencedColumns: ["registration_id"]
+          },
+        ]
+      }
+      registration_rosters: {
+        Row: {
+          assigned_role: string
+          confirmation_status: string
+          created_at: string
+          eligibility_status: string
+          locked_at: string | null
+          registration_id: string
+          registration_roster_id: string
+          starter_slot_number: number | null
+          team_member_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_role: string
+          confirmation_status?: string
+          created_at?: string
+          eligibility_status?: string
+          locked_at?: string | null
+          registration_id: string
+          registration_roster_id?: string
+          starter_slot_number?: number | null
+          team_member_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_role?: string
+          confirmation_status?: string
+          created_at?: string
+          eligibility_status?: string
+          locked_at?: string | null
+          registration_id?: string
+          registration_roster_id?: string
+          starter_slot_number?: number | null
+          team_member_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_rosters_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_registrations"
+            referencedColumns: ["registration_id"]
+          },
+          {
+            foreignKeyName: "registration_rosters_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["team_member_id"]
+          },
+        ]
+      }
+      team_invitations: {
+        Row: {
+          created_at: string
+          invitation_id: string
+          invited_by_user_id: string
+          invited_user_id: string
+          platform: string
+          responded_at: string | null
+          roster_role: string
+          status: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          invitation_id?: string
+          invited_by_user_id: string
+          invited_user_id: string
+          platform: string
+          responded_at?: string | null
+          roster_role: string
+          status?: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          invitation_id?: string
+          invited_by_user_id?: string
+          invited_user_id?: string
+          platform?: string
+          responded_at?: string | null
+          roster_role?: string
+          status?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_invited_by_user_id_fkey"
+            columns: ["invited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_invited_user_id_fkey"
+            columns: ["invited_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           game_username: string | null
@@ -175,6 +370,57 @@ export type Database = {
           },
         ]
       }
+      tournament_registrations: {
+        Row: {
+          checked_in_at: string | null
+          created_at: string
+          funding_status: string
+          registration_id: string
+          rules_accepted_at: string | null
+          status: string
+          team_id: string
+          tournament_id: string
+          updated_at: string
+        }
+        Insert: {
+          checked_in_at?: string | null
+          created_at?: string
+          funding_status?: string
+          registration_id?: string
+          rules_accepted_at?: string | null
+          status?: string
+          team_id: string
+          tournament_id: string
+          updated_at?: string
+        }
+        Update: {
+          checked_in_at?: string | null
+          created_at?: string
+          funding_status?: string
+          registration_id?: string
+          rules_accepted_at?: string | null
+          status?: string
+          team_id?: string
+          tournament_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_registrations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "tournament_registrations_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["tournament_id"]
+          },
+        ]
+      }
       tournament_settings: {
         Row: {
           allow_payer_to_sponsor_opposing_teams: boolean
@@ -236,6 +482,8 @@ export type Database = {
           entitlement_lock_at: string | null
           entry_fee_per_starting_slot_cents: number
           first_place_prize_cents: number | null
+          maximum_coaches: number
+          maximum_managers: number
           maximum_reserves: number
           maximum_substitutes: number
           maximum_teams: number | null
@@ -265,6 +513,8 @@ export type Database = {
           entitlement_lock_at?: string | null
           entry_fee_per_starting_slot_cents: number
           first_place_prize_cents?: number | null
+          maximum_coaches?: number
+          maximum_managers?: number
           maximum_reserves?: number
           maximum_substitutes?: number
           maximum_teams?: number | null
@@ -294,6 +544,8 @@ export type Database = {
           entitlement_lock_at?: string | null
           entry_fee_per_starting_slot_cents?: number
           first_place_prize_cents?: number | null
+          maximum_coaches?: number
+          maximum_managers?: number
           maximum_reserves?: number
           maximum_substitutes?: number
           maximum_teams?: number | null
@@ -353,7 +605,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_app_user_id: { Args: never; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
+      is_team_member: { Args: { check_team_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

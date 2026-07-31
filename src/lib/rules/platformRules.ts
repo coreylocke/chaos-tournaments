@@ -14,3 +14,19 @@ export function platformToTournamentDivision(
 ): TournamentDivision {
   return platform === "PC" ? "PC" : "Console";
 }
+
+export function isPlatformValidForDivision(
+  platform: Platform,
+  division: TournamentDivision
+): boolean {
+  return platformToTournamentDivision(platform) === division;
+}
+
+// Every starter/sub/reserve must match the tournament's division; coaches
+// and managers don't compete, so they're exempt (Authentication and Roles
+// page, Section 5 of the master brief).
+export const ROSTER_ROLES_REQUIRING_PLATFORM_VALIDATION = [
+  "starter",
+  "substitute",
+  "reserve",
+] as const;

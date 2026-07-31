@@ -70,3 +70,52 @@ export async function createTeam(input: CreateTeamInput) {
     throw error;
   }
 }
+
+export type UpdateTeamMemberInput = {
+  teamMemberId: string;
+  actingUserId: string;
+  rosterRole?: "starter" | "substitute" | "reserve" | "coach" | "manager";
+  isActive?: boolean;
+};
+
+// Captain-only roster edits (change role, deactivate/remove a member).
+// Never touches payer/entitlement data — those live entirely on
+// registration_entry_slots per CLAUDE.md Section 4/6.
+export async function updateTeamMember(input: UpdateTeamMemberInput) {
+  const supabase = createServiceRoleClient();
+
+  const { data: member, error: memberError } = await supabase
+    .from("team_members")
+    .select("team_member_id, team_id, teams(captain_user_id)")
+    .eq("team_member_id", input.teamMemberId)
+    .single();
+
+  if (memberError) throw memberError;
+  const captainUserId = (
+    member.teams as unknown as { captain_user_id: string } | null
+  )?.captain_user_id;
+  if (captainUserId !== input.actingUserId) {
+    throw new Error("Only the team captain can edit the roster.");
+  }
+
+  const update: {
+    roster_role?: UpdateTeamMemberInput["rosterRole"];
+    is_active?: boolean;
+    removed_at?: string | null;
+  } = {};
+  if (input.rosterRole) update.roster_role = input.rosterRole;
+  if (input.isActive === false) {
+    update.is_active = false;
+    update.removed_at = new Date().toISOString();
+  } else if (input.isActive === true) {
+    update.is_active = true;
+    update.removed_at = null;
+  }
+
+  const { error } = await supabase
+    .from("team_members")
+    .update(update)
+    .eq("team_member_id", input.teamMemberId);
+
+  if (error) throw error;
+}
