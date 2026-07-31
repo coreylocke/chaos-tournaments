@@ -1,14 +1,14 @@
 ---
 
-## title: Chaos \- Claude Deliverables type: spec last-updated: 2026-07-29 tags: \[chaos-tournaments, architecture, pre-build, spec\]
+## title: Chaos \- Claude Deliverables type: spec last-updated: 2026-07-31 tags: \[chaos-tournaments, architecture, pre-build, spec\]
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed). This is the architecture, schema, flows, and first milestone that must exist before any application code gets written. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a Phase 2 milestone added once Phase 1 shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules) and 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps).
 
-**Last updated**: 2026-07-29
+**Last updated**: 2026-07-31
 
 ---
 
@@ -22,6 +22,12 @@ These aren't in the original brief — they were decided in conversation and thi
   - **Tournament play**: PC is isolated (PC only ever plays PC). PS5, Xbox, and PS4 all cross-play together as one "Console" division.  
   - **Grudge matches**: no platform restriction at all. Any platform can challenge any platform or team, PC included.  
 - **Stripe Connect**: built for, but not activated. Every payment flow below assumes a single connected Stripe account (Chaos's own), not per-user Connect accounts.
+
+**Phase 2 planning decisions (2026-07-31)** — the master build brief names `team_invitations` and the Phase 2/Phase 4 registration split without fully specifying either; these fill the gaps:
+
+- **Team invitations require an existing account.** `team_invitations.invited_user_id` is a non-null FK to `users` — you can only invite someone who has already logged in with Discord at least once. This doesn't weaken the payout-entitlement rule (entitlement only ever attaches to whoever pays, which already requires being logged in); it's purely to avoid the added complexity of linking a pending invite to an account that doesn't exist yet. Revisit if unregistered-user invites turn out to matter in practice.
+- **Phase 2 includes a *minimal* tournament-registration trigger, not the full Phase 4 flow.** The brief's Phase 2 description lists "registration entry slots," which can't exist without a `tournament_registrations` row — so Phase 2 adds a bare "register this team for this tournament" action (validates division/platform/starter-count, creates the registration, snapshots the roster into `registration_rosters`, generates `registration_entry_slots`). The polished experience — dedicated `/tournaments/[slug]` pages, rules acceptance, check-in, the full registration stepper, success-screen buttons — stays Phase 4 work per the brief's own split.
+- **`maximum_coaches`/`maximum_managers` added to `tournaments`.** The brief's Section 19 calls for both; the original schema pass here omitted them. Added as `int not null default 1` each, enforced by the same roster-validation logic that checks `maximum_substitutes`/`maximum_reserves`.
 
 ---
 
@@ -237,6 +243,28 @@ create table team\_members (
 
 );
 
+create table team\_invitations (
+
+  invitation\_id uuid primary key default gen\_random\_uuid(),
+
+  team\_id uuid not null references teams(team\_id) on delete cascade,
+
+  invited\_user\_id uuid not null references users(user\_id),
+
+  invited\_by\_user\_id uuid not null references users(user\_id),
+
+  roster\_role text not null check (roster\_role in ('starter','substitute','reserve','coach','manager')),
+
+  platform text not null check (platform in ('PC','PS5','Xbox','PS4')),
+
+  status text not null default 'pending' check (status in ('pending','accepted','declined','revoked','expired')),
+
+  created\_at timestamptz not null default now(),
+
+  responded\_at timestamptz
+
+);
+
 \-- Tournaments \-------------------------------------------------------------
 
 create table tournaments (
@@ -254,6 +282,10 @@ create table tournaments (
   maximum\_substitutes int not null default 2,
 
   maximum\_reserves int not null default 2,
+
+  maximum\_coaches int not null default 1,
+
+  maximum\_managers int not null default 1,
 
   minimum\_teams int not null default 4,
 
@@ -354,6 +386,38 @@ create table tournament\_registrations (
   unique (tournament\_id, team\_id)
 
 );
+
+create table registration\_rosters (
+
+  registration\_roster\_id uuid primary key default gen\_random\_uuid(),
+
+  registration\_id uuid not null references tournament\_registrations(registration\_id) on delete cascade,
+
+  team\_member\_id uuid not null references team\_members(team\_member\_id),
+
+  assigned\_role text not null check (assigned\_role in ('starter','substitute','reserve','coach','manager')),
+
+  starter\_slot\_number int,
+
+  eligibility\_status text not null default 'eligible' check (eligibility\_status in ('eligible','ineligible','pending\_review')),
+
+  confirmation\_status text not null default 'pending' check (confirmation\_status in ('pending','confirmed','declined')),
+
+  locked\_at timestamptz,
+
+  created\_at timestamptz not null default now(),
+
+  updated\_at timestamptz not null default now(),
+
+  unique (registration\_id, team\_member\_id)
+
+);
+
+\-- Roster role and entry-payment ownership stay separate: registration\_rosters
+
+\-- records who plays what role for this specific registration; payer/entitlement
+
+\-- ownership lives entirely on registration\_entry\_slots and payout\_entitlements.
 
 create table registration\_entry\_slots (
 
@@ -819,7 +883,7 @@ create table audit\_logs (
 
 > Note: the `matches` table's advancement-uniqueness constraint (`source_match_id, destination_match_id, destination_slot`) needs a generated column or application-level enforcement since the source is split across `team_1_source_match_id`/`team_2_source_match_id` — flagged here rather than shipped as broken SQL above.
 
-**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `team_invitations`, `tournament_rules`, `registration_rosters`, `entry_checkout_locks` (may fold into `registration_entry_slots.checkout_lock_*` instead of a separate table — decide during Phase 2), `match_maps`, `match_roster_snapshots`, `substitutions`, `check_ins`, `rankings`, `team_statistics`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`.
+**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `tournament_rules`, `match_maps`, `match_roster_snapshots`, `substitutions`, `check_ins`, `rankings`, `team_statistics`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`. (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are now fully specified above as of the Phase 2 planning pass.)
 
 ---
 
@@ -855,6 +919,8 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | `teams`, `brackets`, `matches` (non-financial columns) | read | read | read/write own | read | read/write |
 | `team_members` | — | read own team | read/write own team | — | read/write |
+| `team_invitations` | — | read own (as invitee) | read/write own team's invites | — | read/write |
+| `tournament_registrations`, `registration_rosters` | — | read own | read/write own team's | — | read/write |
 | `registration_entry_slots` | — | read own slot | read own team's slots (no payer/entitlement reassignment) | read own funded slots | read/write |
 | `payments`, `payment_entry_allocations` | — | — | — | read own | read/write |
 | `payout_entitlements`, `payouts`, `payout_line_items` | — | read own | — | read own | read/write |
@@ -1058,11 +1124,11 @@ Live list maintained on Chaos \- Open Risks and Contradictions. Active as of 202
 - No email connector; admin-panel/DNS/registrar access unconfirmed.  
 - Brand logo file has no real alpha transparency — needs re-export before use in the new build.
 
-Resolved this build-planning pass (game identity, tenancy, tournament vs. grudge platform rules) are in Section 0 above and fully detailed on the Open Risks page.
+Resolved this build-planning pass (game identity, tenancy, tournament vs. grudge platform rules) are in Section 0 above and fully detailed on the Open Risks page. Resolved during Phase 2 planning (2026-07-31): `team_invitations` field list and consent flow, the Phase 2/Phase 4 registration-flow boundary, and the missing `maximum_coaches`/`maximum_managers` columns — all in Section 0 above.
 
 ## 24\. Configurable decisions
 
-Everything below lives in `tournament_settings` (per-tournament) rather than hardcoded: `operations_fee_percentage`, `prize_rounding_increment_cents`, `remainder_allocation_rule`, `remainder_fallback_rule`, `double_no_show_policy`, `auto_confirmation_enabled`/`_window_minutes`/`_value_threshold`, `allow_payer_to_sponsor_opposing_teams` (scoped at the tournament level — any two teams in the same tournament), `seeding_method`, `entitlement_lock_at` trigger point, `required_starting_players`/`maximum_substitutes`/`maximum_reserves`, `best_of`. Qualifier→championship entry-fee carryover: identical-fee slots carry over automatically; a fee mismatch triggers a fresh registration.
+Everything below lives in `tournament_settings` (per-tournament) rather than hardcoded: `operations_fee_percentage`, `prize_rounding_increment_cents`, `remainder_allocation_rule`, `remainder_fallback_rule`, `double_no_show_policy`, `auto_confirmation_enabled`/`_window_minutes`/`_value_threshold`, `allow_payer_to_sponsor_opposing_teams` (scoped at the tournament level — any two teams in the same tournament), `seeding_method`, `entitlement_lock_at` trigger point, `required_starting_players`/`maximum_substitutes`/`maximum_reserves`/`maximum_coaches`/`maximum_managers`, `best_of`. Qualifier→championship entry-fee carryover: identical-fee slots carry over automatically; a fee mismatch triggers a fresh registration.
 
 ## 25\. First implementation milestone
 
@@ -1076,6 +1142,21 @@ Matches Build Phase 1 ("Foundation") from Chaos \- Build Plan and Business Rules
 6. `tournaments`, `tournament_settings` tables \+ a minimal admin tournament-creation form (no registration flow yet).
 
 **Acceptance criteria**: a user can log in with Discord, create a team, and an admin can create a tournament — with zero payment, bracket, or Discord-bot code written yet. That boundary is intentional; Phase 2 (rosters & entry slots) starts only after this is reviewed.
+
+**Status**: reviewed and complete as of 2026-07-31, tested end-to-end against a live Supabase project (including fixing an RLS self-recursion bug and missing role grants found only by testing the real login flow).
+
+## 25a\. Second implementation milestone
+
+Matches Build Phase 2 ("Rosters and Entry Slots") from Chaos \- Build Plan and Business Rules, scoped per the Phase 2 planning decisions in Section 0 above:
+
+1. `team_invitations` table \+ invite/accept/decline flow (captain invites an existing user by Discord username; roster membership is never created without the invitee's consent).  
+2. Full roster management UI on `/teams/[id]/roster`: add confirmed members as starter/substitute/reserve/coach/manager, enforcing `required_starting_players`/`maximum_substitutes`/`maximum_reserves`/`maximum_coaches`/`maximum_managers` and platform-vs-division validation (every starter/sub/reserve must match the team's division; coaches/managers are exempt).  
+3. `maximum_coaches`/`maximum_managers` columns added to `tournaments`.  
+4. `tournament_registrations` \+ `registration_rosters` tables, and a minimal "register this team for this tournament" action: validates division match and `starter_count == required_starting_players` (blocking with an explanation otherwise, per the brief's Section 19 pseudocode), then creates the registration and snapshots the roster.  
+5. `registration_entry_slots` table \+ generation logic: one row per required starter position, `entry_fee_amount_cents` from the tournament, `payment_status = 'unpaid'` — no Stripe integration yet.  
+6. Entry Funding screen: read-only view of each slot's unpaid/paid status. No checkout, no payment, no Stripe code — that's Phase 3 ("Payments and Sponsorship") per the brief's own phase split.
+
+**Acceptance criteria**: a captain can invite a player, the player can accept, the roster can be built up to a valid starting lineup, the team can register for a tournament, and the registration produces the correct number of unpaid entry slots — with zero Stripe/checkout code written yet.
 
 ---
 
