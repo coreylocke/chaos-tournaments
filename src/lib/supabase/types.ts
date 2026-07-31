@@ -542,6 +542,41 @@ export type Database = {
           },
         ]
       }
+      tournament_rules: {
+        Row: {
+          body: string
+          created_at: string
+          tournament_id: string
+          tournament_rules_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          tournament_id: string
+          tournament_rules_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          tournament_id?: string
+          tournament_rules_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_rules_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: true
+            referencedRelation: "tournaments"
+            referencedColumns: ["tournament_id"]
+          },
+        ]
+      }
       tournament_settings: {
         Row: {
           allow_payer_to_sponsor_opposing_teams: boolean

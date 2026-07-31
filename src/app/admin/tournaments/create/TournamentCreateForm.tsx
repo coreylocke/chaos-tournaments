@@ -102,6 +102,61 @@ export function TournamentCreateForm() {
         </div>
       </div>
 
+      <div className="flex flex-col gap-1">
+        <label htmlFor="status" className="text-sm font-medium">
+          Status
+        </label>
+        <select
+          id="status"
+          name="status"
+          defaultValue="draft"
+          className="h-12 rounded-lg border border-zinc-300 px-4 dark:border-zinc-700 dark:bg-zinc-900"
+        >
+          <option value="draft">Draft (not open for registration)</option>
+          <option value="open">Open (teams can register)</option>
+        </select>
+      </div>
+
+      <div className="flex gap-4">
+        <div className="flex flex-1 flex-col gap-1">
+          <label htmlFor="check_in_open_at" className="text-sm font-medium">
+            Check-in opens
+          </label>
+          <input
+            id="check_in_open_at"
+            name="check_in_open_at"
+            type="datetime-local"
+            className="h-12 rounded-lg border border-zinc-300 px-4 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <label htmlFor="check_in_close_at" className="text-sm font-medium">
+            Check-in closes
+          </label>
+          <input
+            id="check_in_close_at"
+            name="check_in_close_at"
+            type="datetime-local"
+            className="h-12 rounded-lg border border-zinc-300 px-4 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </div>
+      </div>
+      <p className="text-xs text-zinc-500">
+        Leave check-in dates blank to allow check-in at any time.
+      </p>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="rules_body" className="text-sm font-medium">
+          Rules (optional)
+        </label>
+        <textarea
+          id="rules_body"
+          name="rules_body"
+          rows={5}
+          className="rounded-lg border border-zinc-300 px-4 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+        />
+      </div>
+
       <button
         type="submit"
         className="h-12 rounded-full bg-foreground px-5 font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"

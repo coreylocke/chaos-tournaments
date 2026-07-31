@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function TournamentsPage() {
   const supabase = await createClient();
   const { data: tournaments } = await supabase
     .from("tournaments")
-    .select("tournament_id, name, division, status")
+    .select("tournament_id, slug, name, division, status")
     .order("created_at", { ascending: false });
 
   return (
@@ -19,14 +20,16 @@ export default async function TournamentsPage() {
 
       <ul className="flex flex-col gap-2">
         {tournaments?.map((t) => (
-          <li
-            key={t.tournament_id}
-            className="flex items-center justify-between rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800"
-          >
-            <span>{t.name}</span>
-            <span className="text-xs text-zinc-500">
-              {t.division} &middot; {t.status}
-            </span>
+          <li key={t.tournament_id}>
+            <Link
+              href={`/tournaments/${t.slug}`}
+              className="flex items-center justify-between rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800"
+            >
+              <span>{t.name}</span>
+              <span className="text-xs text-zinc-500">
+                {t.division} &middot; {t.status}
+              </span>
+            </Link>
           </li>
         ))}
       </ul>

@@ -156,3 +156,103 @@ export async function registerTeamForTournament(input: RegisterTeamInput) {
 
   return registration;
 }
+
+async function loadRegistrationForCaptainAction(
+  registrationId: string,
+  actingUserId: string,
+  supabase: ReturnType<typeof createServiceRoleClient>
+) {
+  const { data: registration, error } = await supabase
+    .from("tournament_registrations")
+    .select(
+      "registration_id, tournament_id, team_id, funding_status, rules_accepted_at, checked_in_at, teams(captain_user_id), tournaments(check_in_open_at, check_in_close_at)"
+    )
+    .eq("registration_id", registrationId)
+    .single();
+  if (error) throw error;
+
+  const captainUserId = (
+    registration.teams as unknown as { captain_user_id: string } | null
+  )?.captain_user_id;
+  if (captainUserId !== actingUserId) {
+    throw new Error("Only the team captain can do this.");
+  }
+
+  return registration;
+}
+
+// Business rule 17 (master brief): the captain accepts tournament rules.
+export async function acceptRegistrationRules(input: {
+  registrationId: string;
+  actingUserId: string;
+}) {
+  const supabase = createServiceRoleClient();
+  const registration = await loadRegistrationForCaptainAction(
+    input.registrationId,
+    input.actingUserId,
+    supabase
+  );
+
+  if (registration.rules_accepted_at) return registration;
+
+  const { error } = await supabase
+    .from("tournament_registrations")
+    .update({ rules_accepted_at: new Date().toISOString() })
+    .eq("registration_id", input.registrationId);
+  if (error) throw error;
+}
+
+// Business rule 18 (master brief): team completes check-in. Gated on the
+// stepper order from Section 20 — funding and rules acceptance must already
+// be done — and on the tournament's check-in window, if configured.
+export async function checkInRegistration(input: {
+  registrationId: string;
+  actingUserId: string;
+}) {
+  const supabase = createServiceRoleClient();
+  const registration = await loadRegistrationForCaptainAction(
+    input.registrationId,
+    input.actingUserId,
+    supabase
+  );
+
+  if (registration.checked_in_at) return registration;
+  if (registration.funding_status !== "fully_funded") {
+    throw new Error("All required entries must be paid before check-in.");
+  }
+  if (!registration.rules_accepted_at) {
+    throw new Error("Accept the tournament rules before checking in.");
+  }
+
+  const tournament = registration.tournaments as unknown as {
+    check_in_open_at: string | null;
+    check_in_close_at: string | null;
+  } | null;
+  const now = new Date();
+  if (tournament?.check_in_open_at && now < new Date(tournament.check_in_open_at)) {
+    throw new Error("Check-in hasn't opened yet.");
+  }
+  if (tournament?.check_in_close_at && now > new Date(tournament.check_in_close_at)) {
+    throw new Error("Check-in has closed.");
+  }
+
+  const { error } = await supabase
+    .from("tournament_registrations")
+    .update({ checked_in_at: now.toISOString() })
+    .eq("registration_id", input.registrationId);
+  if (error) throw error;
+}
+
+// Admin-only. Authorization happens in the caller, same as the rest of the
+// service layer.
+export async function setRegistrationStatus(input: {
+  registrationId: string;
+  status: "approved" | "rejected";
+}) {
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase
+    .from("tournament_registrations")
+    .update({ status: input.status })
+    .eq("registration_id", input.registrationId);
+  if (error) throw error;
+}

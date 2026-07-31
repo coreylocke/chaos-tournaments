@@ -4,9 +4,9 @@
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b Phase 2 and Phase 3 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c Phase 2, 3, and 4 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), and 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), and 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope).
 
 **Last updated**: 2026-07-31
 
@@ -34,6 +34,13 @@ These aren't in the original brief — they were decided in conversation and thi
 - **`tournament_registrations.status` was missing `'payment_review'`.** Section 13's webhook flow explicitly targets that status on verification failure, but the CHECK constraint from the original schema pass never included it. Added via migration.
 - **Entry funding is captain-only for this pass, not the full sponsor-link model.** The brief describes a standalone `/pay/[entry-link]` flow letting any authorized third party (not just team members) fund an entry via a shareable link — but that requires a link/token mechanism nowhere specified in the schema. This pass lets the team captain pay for any of their team's unpaid entries (covering "pay for self" and "pay for teammates" from Section 20's wireframe) using the same RLS-visibility the captain already has from Phase 2. The standalone sponsor-link flow for non-team-members is deferred to a later pass.
 - **`payout_entitlements` (the separate table) is not created yet.** The Stripe webhook sets `registration_entry_slots.payout_entitlement_user_id`/`entitlement_status` directly, matching Section 13's literal webhook-flow wording. The dedicated `payout_entitlements` table (needed for `entitlement_transfers` and formal payout calculation) is deferred to Phase 7 ("Prize Allocation and Payouts"), where it's actually exercised.
+
+**Phase 4 planning decisions (2026-07-31)** — the master build brief names `tournament_rules` and `check_ins` without fully specifying either:
+
+- **`tournament_rules` is one admin-editable rules body per tournament**, set via a textarea on the admin tournament-creation form (no separate rules-editing UI built yet — creating a tournament is currently the only way to set its rules). Versioned (`version int`) so a future edit can be told apart from what a team already accepted, even though nothing enforces re-acceptance on a version bump yet.
+- **No separate `check_ins` table.** `tournament_registrations.checked_in_at`, already in the Phase 1 schema, is enough for Phase 4 — same reasoning as `payout_entitlements` in Phase 3: build the dedicated table only when something needs more than a timestamp.
+- **Check-in is gated**, not just a free checkbox: it requires `funding_status = 'fully_funded'`, `rules_accepted_at` already set, and — if the tournament configures `check_in_open_at`/`check_in_close_at` — the current time inside that window. This matches the brief's own step order (Entry Funding → Rules → Check-In) and Section 51's "server-side eligibility checks" requirement.
+- **Registration approval is scoped to just approve/reject.** Section 21's admin dashboard lists many more actions (lock/unlock roster, correct payer assignment, seed brackets, etc.) — only the one action Phase 4 explicitly calls for ("registration approval") was built; the rest belongs to the phases that actually need them.
 
 ---
 
@@ -362,6 +369,24 @@ create table tournament\_settings (
   seeding\_method text not null default 'hybrid'
 
     check (seeding\_method in ('random','registration\_order','manual','ranking\_based','performance\_based','hybrid'))
+
+);
+
+create table tournament\_rules (
+
+  tournament\_rules\_id uuid primary key default gen\_random\_uuid(),
+
+  tournament\_id uuid not null references tournaments(tournament\_id) on delete cascade,
+
+  body text not null,
+
+  version int not null default 1,
+
+  created\_at timestamptz not null default now(),
+
+  updated\_at timestamptz not null default now(),
+
+  unique (tournament\_id)
 
 );
 
@@ -889,7 +914,7 @@ create table audit\_logs (
 
 > Note: the `matches` table's advancement-uniqueness constraint (`source_match_id, destination_match_id, destination_slot`) needs a generated column or application-level enforcement since the source is split across `team_1_source_match_id`/`team_2_source_match_id` — flagged here rather than shipped as broken SQL above.
 
-**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `tournament_rules`, `match_maps`, `match_roster_snapshots`, `substitutions`, `check_ins`, `rankings`, `team_statistics`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`. (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are now fully specified above as of the Phase 2 planning pass.)
+**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `match_maps`, `match_roster_snapshots`, `substitutions`, `rankings`, `team_statistics`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`. (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are fully specified above as of the Phase 2 planning pass; `tournament_rules` as of Phase 4. `check_ins` — decided: no separate table for now, `tournament_registrations.checked_in_at` covers Phase 4's needs; revisit if a richer per-player check-in record is ever needed.)
 
 ---
 
@@ -927,6 +952,7 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 | `team_members` | — | read own team | read/write own team | — | read/write |
 | `team_invitations` | — | read own (as invitee) | read/write own team's invites | — | read/write |
 | `tournament_registrations`, `registration_rosters` | — | read own | read/write own team's | — | read/write |
+| `tournament_rules` | read | read | read | — | read/write |
 | `registration_entry_slots` | — | read own slot | read own team's slots (no payer/entitlement reassignment) | read own funded slots | read/write |
 | `payments`, `payment_entry_allocations` | — | — | — | read own | read/write |
 | `payment_events` | — | — | — | — | read only (internal webhook audit trail) |
@@ -1181,6 +1207,20 @@ Matches the core-payment-loop slice of Build Phase 3 ("Payments and Sponsorship"
 **Deliberately not included** (deferred to a later pass): the standalone `/pay/[entry-link]` sponsor flow for non-team-members, a dedicated sponsor dashboard, downloadable receipts/PDFs, refunds, and chargebacks.
 
 **Acceptance criteria**: a captain can select one or more unpaid entries, complete a real Stripe test-mode Checkout session, and have the webhook correctly mark those entries paid, set the payout entitlement to the payer, and recalculate the registration's funding status — verified end-to-end against a live Stripe test-mode Checkout page, not just the API.
+
+**Status**: reviewed and complete as of 2026-07-31.
+
+## 25c\. Fourth implementation milestone
+
+Matches Build Phase 4 ("Tournament Registration") from Chaos \- Build Plan and Business Rules, scoped per the Phase 4 planning decisions in Section 0 above:
+
+1. `tournament_rules` table, set via a rules textarea on the admin tournament-creation form.
+2. Public tournament detail page (`/tournaments/[slug]`): name, division, entry fee, status, rules text, and a register CTA that lists the logged-in user's matching-division teams directly on the page.
+3. Rules acceptance and check-in added to the Entry Funding screen (`/teams/[id]/entries`): captain views the rules and accepts (sets `rules_accepted_at`), then checks in (sets `checked_in_at`) once `funding_status = 'fully_funded'`, rules are accepted, and (if configured) the tournament's check-in window is open.
+4. Admin registration approval (`/admin/registrations`): list with funding/rules/check-in status, approve/reject action.
+5. `/registration/success` and `/registration/cancelled` — the registration action now redirects to the success page (with links to Team Entries, Edit Roster, and the tournament page) instead of straight to the entries screen.
+
+**Acceptance criteria**: a captain can open a tournament page, register a team from it, land on a confirmation page, fund the entries, accept the rules, and check in — with check-in correctly blocked until funding and rules acceptance are both done and the check-in window (when configured) is open — and an admin can approve or reject the registration. Verified against the live database using the real service-layer functions, including the check-in gating and window-enforcement failure paths, not just the success path.
 
 ---
 

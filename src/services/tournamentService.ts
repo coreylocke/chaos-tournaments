@@ -17,6 +17,10 @@ export type CreateTournamentInput = {
   requiredStartingPlayers: number;
   maximumSubstitutes: number;
   maximumReserves: number;
+  status?: "draft" | "open";
+  checkInOpenAt?: string;
+  checkInCloseAt?: string;
+  rulesBody?: string;
 };
 
 // Admin-only privileged write. Authorization (is_admin check) happens in the
@@ -36,6 +40,9 @@ export async function createTournament(input: CreateTournamentInput) {
       required_starting_players: input.requiredStartingPlayers,
       maximum_substitutes: input.maximumSubstitutes,
       maximum_reserves: input.maximumReserves,
+      status: input.status ?? "draft",
+      check_in_open_at: input.checkInOpenAt ?? null,
+      check_in_close_at: input.checkInCloseAt ?? null,
     })
     .select()
     .single();
@@ -47,6 +54,13 @@ export async function createTournament(input: CreateTournamentInput) {
     .insert({ tournament_id: tournament.tournament_id });
 
   if (settingsError) throw settingsError;
+
+  if (input.rulesBody && input.rulesBody.trim()) {
+    const { error: rulesError } = await supabase
+      .from("tournament_rules")
+      .insert({ tournament_id: tournament.tournament_id, body: input.rulesBody.trim() });
+    if (rulesError) throw rulesError;
+  }
 
   return tournament;
 }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/currentUser";
 import { createCheckoutSession } from "@/services/paymentService";
+import { acceptRegistrationRules, checkInRegistration } from "@/services/registrationService";
 
 export async function payEntriesAction(formData: FormData) {
   const teamId = String(formData.get("team_id") ?? "");
@@ -28,4 +29,38 @@ export async function payEntriesAction(formData: FormData) {
   }
 
   redirect(checkoutUrl!);
+}
+
+export async function acceptRulesAction(formData: FormData) {
+  const teamId = String(formData.get("team_id") ?? "");
+  const registrationId = String(formData.get("registration_id") ?? "");
+  const user = await getCurrentUser();
+  if (!user) redirect(`/login?next=/teams/${teamId}/entries`);
+
+  try {
+    await acceptRegistrationRules({ registrationId, actingUserId: user!.user_id });
+  } catch (err) {
+    redirect(
+      `/teams/${teamId}/entries?error=${encodeURIComponent((err as Error).message)}`
+    );
+  }
+
+  redirect(`/teams/${teamId}/entries`);
+}
+
+export async function checkInAction(formData: FormData) {
+  const teamId = String(formData.get("team_id") ?? "");
+  const registrationId = String(formData.get("registration_id") ?? "");
+  const user = await getCurrentUser();
+  if (!user) redirect(`/login?next=/teams/${teamId}/entries`);
+
+  try {
+    await checkInRegistration({ registrationId, actingUserId: user!.user_id });
+  } catch (err) {
+    redirect(
+      `/teams/${teamId}/entries?error=${encodeURIComponent((err as Error).message)}`
+    );
+  }
+
+  redirect(`/teams/${teamId}/entries`);
 }

@@ -20,6 +20,10 @@ export async function createTournamentAction(formData: FormData) {
   );
   const maximumSubstitutes = Number(formData.get("maximum_substitutes") ?? 2);
   const maximumReserves = Number(formData.get("maximum_reserves") ?? 2);
+  const status = formData.get("status") === "open" ? "open" : "draft";
+  const checkInOpenAt = String(formData.get("check_in_open_at") ?? "");
+  const checkInCloseAt = String(formData.get("check_in_close_at") ?? "");
+  const rulesBody = String(formData.get("rules_body") ?? "");
 
   if (!name || !TOURNAMENT_DIVISIONS.includes(division)) {
     redirect("/admin/tournaments/create?error=invalid_input");
@@ -32,6 +36,10 @@ export async function createTournamentAction(formData: FormData) {
     requiredStartingPlayers,
     maximumSubstitutes,
     maximumReserves,
+    status,
+    checkInOpenAt: checkInOpenAt ? new Date(checkInOpenAt).toISOString() : undefined,
+    checkInCloseAt: checkInCloseAt ? new Date(checkInCloseAt).toISOString() : undefined,
+    rulesBody,
   });
 
   redirect("/admin/tournaments");
