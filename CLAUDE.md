@@ -383,7 +383,7 @@ create table tournament\_registrations (
 
   checked\_in\_at timestamptz,
 
-  status text not null default 'pending' check (status in ('pending','approved','rejected','withdrawn')),
+  status text not null default 'pending' check (status in ('pending','approved','rejected','withdrawn','payment\_review')),
 
   created\_at timestamptz not null default now(),
 
@@ -929,6 +929,7 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 | `tournament_registrations`, `registration_rosters` | — | read own | read/write own team's | — | read/write |
 | `registration_entry_slots` | — | read own slot | read own team's slots (no payer/entitlement reassignment) | read own funded slots | read/write |
 | `payments`, `payment_entry_allocations` | — | — | — | read own | read/write |
+| `payment_events` | — | — | — | — | read only (internal webhook audit trail) |
 | `payout_entitlements`, `payouts`, `payout_line_items` | — | read own | — | read own | read/write |
 | `refunds`, `chargebacks` | — | — | — | read own | read/write |
 | `disputes`, `match_evidence` | — | read if participant | read/write for own team | — | read/write |
