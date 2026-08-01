@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { generateBracketAction } from "./actions";
 import { EnterResultForm } from "./EnterResultForm";
+import { ForfeitForm } from "./ForfeitForm";
 
 export default async function AdminTournamentPage({
   params,
@@ -106,21 +108,47 @@ export default async function AdminTournamentPage({
                         {m.status === "completed" && m.winner_team_id && (
                           <span className="ml-2 text-xs text-green-600 dark:text-green-400">
                             {teamName.get(m.winner_team_id)} won
-                            {m.result_type === "bye" ? " (bye)" : ""}
+                            {m.result_type && m.result_type !== "normal" ? ` (${m.result_type})` : ""}
                           </span>
                         )}
+                        {m.status === "awaiting_confirmation" && (
+                          <span className="ml-2 text-xs text-zinc-500">awaiting confirmation</span>
+                        )}
+                        {m.status === "disputed" && (
+                          <Link
+                            href="/admin/disputes"
+                            className="ml-2 text-xs font-medium text-red-600 dark:text-red-400"
+                          >
+                            disputed — resolve
+                          </Link>
+                        )}
+                        {m.status === "voided" && (
+                          <span className="ml-2 text-xs text-zinc-500">voided</span>
+                        )}
                       </span>
-                      {m.status === "ready" && m.team_1_id && m.team_2_id && (
-                        <EnterResultForm
-                          tournamentId={tournament.tournament_id}
-                          matchId={m.match_id}
-                          team1={{ id: m.team_1_id, name: t1 ?? "Team 1" }}
-                          team2={{ id: m.team_2_id, name: t2 ?? "Team 2" }}
-                        />
-                      )}
-                      {m.status === "pending" && (
-                        <span className="text-xs text-zinc-500">Awaiting teams</span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {m.status === "ready" && m.team_1_id && m.team_2_id && (
+                          <EnterResultForm
+                            tournamentId={tournament.tournament_id}
+                            matchId={m.match_id}
+                            team1={{ id: m.team_1_id, name: t1 ?? "Team 1" }}
+                            team2={{ id: m.team_2_id, name: t2 ?? "Team 2" }}
+                          />
+                        )}
+                        {["ready", "awaiting_confirmation"].includes(m.status) &&
+                          m.team_1_id &&
+                          m.team_2_id && (
+                            <ForfeitForm
+                              tournamentId={tournament.tournament_id}
+                              matchId={m.match_id}
+                              team1={{ id: m.team_1_id, name: t1 ?? "Team 1" }}
+                              team2={{ id: m.team_2_id, name: t2 ?? "Team 2" }}
+                            />
+                          )}
+                        {m.status === "pending" && (
+                          <span className="text-xs text-zinc-500">Awaiting teams</span>
+                        )}
+                      </div>
                     </li>
                   );
                 })}

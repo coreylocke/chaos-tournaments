@@ -28,6 +28,14 @@ export default async function TeamDetailPage({
 
   const isCaptain = currentUser?.user_id === team.captain_user_id;
 
+  const { data: matches } = isCaptain
+    ? await supabase
+        .from("matches")
+        .select("match_id, round_name, team_1_id, team_2_id, status")
+        .or(`team_1_id.eq.${id},team_2_id.eq.${id}`)
+        .in("status", ["ready", "awaiting_confirmation", "disputed"])
+    : { data: null };
+
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-12">
       <div>
@@ -57,6 +65,27 @@ export default async function TeamDetailPage({
           >
             View Entries
           </Link>
+        </div>
+      )}
+
+      {!!matches?.length && (
+        <div>
+          <h2 className="mb-2 text-lg font-medium">Matches</h2>
+          <ul className="flex flex-col gap-2">
+            {matches.map((m) => (
+              <li key={m.match_id}>
+                <Link
+                  href={`/teams/${id}/matches/${m.match_id}`}
+                  className="flex items-center justify-between rounded-lg border border-zinc-200 px-4 py-3 text-sm dark:border-zinc-800"
+                >
+                  <span>{m.round_name}</span>
+                  <span className="text-xs capitalize text-zinc-500">
+                    {m.status.replace(/_/g, " ")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

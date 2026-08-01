@@ -4,9 +4,9 @@
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d Phase 2, 3, 4, and 5 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d/25e Phase 2, 3, 4, 5, and 6 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), and 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding), and 2026-08-01 (Phase 6 planning: two-party result confirmation, team_statistics scoped to per-match fields, dispute-resolution branches without dedicated result_type/bracket-repair tooling, lazy auto-confirmation).
 
 **Last updated**: 2026-08-01
 
@@ -49,6 +49,14 @@ These aren't in the original brief — they were decided in conversation and thi
 - **`match_evidence` and `disputes` tables are not created yet** — nothing in Phase 5 raises a dispute or needs evidence upload (both explicitly Phase 6), so `matches.dispute_status` stays null and finalizeMatch's "no open dispute" check is trivially satisfied for now.
 - **Seeding uses `registration_order` only.** `tournament_settings.seeding_method` supports six values, but `ranking_based`/`performance_based` need stats data that doesn't exist until later phases, and `manual` needs a dedicated admin drag-and-drop UI. `random`/`hybrid` were skipped too, to keep this pass to one clearly-correct, deterministic algorithm rather than several half-built ones. The standard bracket-seeding placement algorithm (recursive "seed vs. `n+1-seed`") is used regardless of ordering method, so top seeds are always separated across the bracket per Section 27.
 - **Bracket eligibility requires the exact gate from the brief**: `tournament_registrations.status = 'approved'` (Phase 4's admin approval) AND `funding_status = 'fully_funded'` (Phase 3) AND `checked_in_at` set (Phase 4). This is the first place all three prior phases' gates compose together.
+
+**Phase 6 planning decisions (2026-08-01)**:
+
+- **Result entry is now the full two-party flow from Section 31**: a captain submits (tentative winner, series score, optional evidence screenshot), the opposing captain either confirms (finalizes) or disputes (blocks advancement pending admin review). Both paths share one `completeMatch` core with Phase 5's `finalizeMatch` (now the admin direct-entry path) and the new forfeit/dispute-resolution paths, so idempotency and team-statistics bookkeeping only exist in one place. `confirmResult` and `disputeResult` both reject the submitting team's own captain — confirming or disputing your own reported result isn't allowed; it has to be the opponent.
+- **`team_statistics` is scoped to per-match fields only** (`matches_played/won/lost`, `forfeit_wins/losses`, current/longest win streak) for this pass. The master brief pairs tournament-placement stats (rankings, season points) with payout creation at tournament-completion time, not per-match — deferred to Phase 7, matching the "increment at the natural trigger point" pattern used throughout this build (e.g. `funding_status` recalculates at the payment webhook, not at registration).
+- **Two dispute-resolution branches reuse `result_type = 'admin_score'`** (`result_reversed` and `team_disqualified`) because the schema's `result_type` enum has no dedicated value for either. **`double_forfeit` resolution via the disputes path doesn't support designating a winner** — only the direct admin forfeit action does — because the dispute-resolution form has no field for it in this pass. **`partial_replay` is treated identically to `match_replay`** (full reset to `ready`) since no per-map score tracking exists yet to make a partial replay meaningfully different. All three are scoped-down implementations of resolution types the brief names but which need bracket-repair tooling this phase doesn't build.
+- **Auto-confirmation is lazy, not cron-driven.** `maybeAutoConfirm` runs on page load (the captain match page calls it before rendering) rather than on a schedule, because no background-job infrastructure exists yet — that's Phase 8/n8n territory. A match sits in `awaiting_confirmation` until either captain visits the page after the window closes, or an admin acts on it directly.
+- **`disputes.match_id` has no `ON DELETE CASCADE`**, unlike its siblings `match_results`/`match_confirmations`/`match_evidence` — this was already how Section 3's DDL specified it before this phase, not a Phase 6 change, but it's worth calling out: a match with an open dispute record can't be deleted out from under it, which is a reasonable guardrail against silently losing dispute history.
 
 ---
 
@@ -159,6 +167,10 @@ erDiagram
     matches ||--o{ match\_confirmations : "confirms"
 
     matches ||--o{ disputes : "may raise"
+
+    matches ||--o{ match\_evidence : "has"
+
+    teams ||--|| team\_statistics : "tracks"
 
     teams ||--o{ grudge\_matches : "challenges"
 
@@ -868,6 +880,28 @@ create table disputes (
 
 );
 
+create table team\_statistics (
+
+  team\_id uuid primary key references teams(team\_id) on delete cascade,
+
+  matches\_played int not null default 0,
+
+  matches\_won int not null default 0,
+
+  matches\_lost int not null default 0,
+
+  forfeit\_wins int not null default 0,
+
+  forfeit\_losses int not null default 0,
+
+  current\_win\_streak int not null default 0,
+
+  longest\_win\_streak int not null default 0,
+
+  updated\_at timestamptz not null default now()
+
+);
+
 \-- Grudge matches (no platform restriction — see Section 0\) \-----------------
 
 create table grudge\_matches (
@@ -930,7 +964,7 @@ create table audit\_logs (
 
 > Note: the `matches` table's advancement-uniqueness constraint (`source_match_id, destination_match_id, destination_slot`) needs a generated column or application-level enforcement since the source is split across `team_1_source_match_id`/`team_2_source_match_id` — flagged here rather than shipped as broken SQL above.
 
-**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `match_maps`, `match_roster_snapshots`, `substitutions`, `rankings`, `team_statistics`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`. (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are fully specified above as of the Phase 2 planning pass; `tournament_rules` as of Phase 4. `check_ins` — decided: no separate table for now, `tournament_registrations.checked_in_at` covers Phase 4's needs; revisit if a richer per-player check-in record is ever needed.)
+**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `match_maps`, `match_roster_snapshots`, `substitutions`, `rankings`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`. `team_statistics` is fully specified above as of the Phase 6 pass (scoped to per-match fields only — see Section 0). (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are fully specified above as of the Phase 2 planning pass; `tournament_rules` as of Phase 4. `check_ins` — decided: no separate table for now, `tournament_registrations.checked_in_at` covers Phase 4's needs; revisit if a richer per-player check-in record is ever needed.)
 
 ---
 
@@ -965,7 +999,9 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 | Table(s) | Public | Authenticated player | Team captain (own team) | Payer (own payments) | Admin |
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | `teams` | read | read | read/write own | read | read/write |
-| `brackets`, `bracket_slots`, `matches`, `match_results`, `match_confirmations` | read | read | read (no write — bracket generation and result entry are admin-only, Phase 5) | read | read/write |
+| `brackets`, `bracket_slots` | read | read | read (no write — bracket generation is admin-only) | read | read/write |
+| `matches`, `match_results`, `match_confirmations` | read | read | read/write for own team's matches (submit/confirm/dispute a result, Phase 6), via service layer | read | read/write |
+| `team_statistics` | read | read | read | — | read/write |
 | `team_members` | — | read own team | read/write own team | — | read/write |
 | `team_invitations` | — | read own (as invitee) | read/write own team's invites | — | read/write |
 | `tournament_registrations`, `registration_rosters` | — | read own | read/write own team's | — | read/write |
@@ -1252,6 +1288,20 @@ Matches Build Phase 5 ("Bracket Engine") from Chaos \- Build Plan and Business R
 5. Public bracket page (`/tournaments/[slug]/bracket`): bracket tree by round, non-financial columns only, winners highlighted.
 
 **Acceptance criteria**: a 5-team tournament (deliberately not a power of 2, to exercise byes) can have its bracket generated, correctly producing an 8-team bracket with exactly 3 byes assigned to the top 3 seeds and distributed across different first-round matches (not clustered), with byes auto-advancing into round 2; round names match the brief's exact examples (Quarterfinals/Semifinals/Championship); invalid scores are rejected; the bracket can be played out match-by-match through a real admin UI session to a champion, with the tournament correctly marked `completed`; and re-finalizing an already-completed match is rejected. Verified with 20 automated checks against the real service-layer functions plus live UI click-testing, which caught and fixed two real bugs: a `{ head: true }` count-query bug showing "0 eligible teams" on the admin page, and a `null === null` false-positive winner highlight on the public bracket page.
+
+---
+
+## 25e\. Sixth implementation milestone
+
+Matches Build Phase 6 ("Results & Disputes") from Chaos \- Build Plan and Business Rules, scoped per the Phase 6 planning decisions in Section 0 above:
+
+1. `match_evidence`, `disputes`, `team_statistics` tables per Section 3 DDL, plus a public `match-evidence` Supabase Storage bucket for scoreboard-screenshot uploads (service-role client bypasses storage RLS on write, matching the rest of this build).
+2. Result submission and confirmation (`matchAdvancementService.submitResult`/`confirmResult`/`disputeResult`): captain submits a tentative winner + series score + optional evidence, opposing captain confirms (shared `completeMatch` core with Phase 5's admin path, now also bumping `team_statistics`) or disputes (blocks advancement, opens a `disputes` row); both confirm and dispute reject the submitting team's own captain.
+3. Admin dispute resolution (`resolveDispute`, 8 resolution branches) and forfeit handling (`forfeitMatch`, single and double forfeit, double forfeit driven by `tournament_settings.double_no_show_policy`).
+4. Auto-confirmation (`maybeAutoConfirm`): lazy, page-load-triggered check against `auto_confirmation_enabled`/`_window_minutes`/`_value_threshold_cents` and evidence presence.
+5. Captain match UI (`/teams/[id]/matches/[matchId]`): submit-result form, confirm/dispute actions, status-appropriate read-only views; admin disputes UI (`/admin/disputes`) with a resolution form; admin tournament hub gained a forfeit action per ready/awaiting-confirmation match.
+
+**Acceptance criteria**: an 8-team tournament can be played to a champion exercising all 7 match-resolution paths (normal confirm, dispute-and-uphold, dispute-and-reverse, dispute-and-replay-then-resubmit, forfeit, dispute-and-disqualify, admin-score), plus separate double-forfeit and auto-confirmation tournaments — all with correct `team_statistics` bookkeeping throughout. Verified with 32 automated checks against the real service-layer functions across three synthetic tournaments, plus 18 live UI click-testing checks driving the full captain-submit → opponent-confirm/dispute → admin-resolve flow through real signed-in browser sessions for four different captains and an admin. Testing caught and fixed one real bug: `disputeResult` was missing the same "disputer can't be the original submitter" symmetry check that `confirmResult` already had, letting a captain dispute their own submitted result and prematurely lock the match out of a legitimate opposing dispute.
 
 ---
 

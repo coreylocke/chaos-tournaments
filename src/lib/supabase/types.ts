@@ -151,6 +151,73 @@ export type Database = {
           },
         ]
       }
+      disputes: {
+        Row: {
+          assigned_admin_id: string | null
+          created_at: string
+          description: string | null
+          dispute_id: string
+          evidence_urls: string[] | null
+          match_id: string
+          reason: string
+          resolution: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string
+          submitted_by_user_id: string
+        }
+        Insert: {
+          assigned_admin_id?: string | null
+          created_at?: string
+          description?: string | null
+          dispute_id?: string
+          evidence_urls?: string[] | null
+          match_id: string
+          reason: string
+          resolution?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          submitted_by_user_id: string
+        }
+        Update: {
+          assigned_admin_id?: string | null
+          created_at?: string
+          description?: string | null
+          dispute_id?: string
+          evidence_urls?: string[] | null
+          match_id?: string
+          reason?: string
+          resolution?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          submitted_by_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_assigned_admin_id_fkey"
+            columns: ["assigned_admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "disputes_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "disputes_submitted_by_user_id_fkey"
+            columns: ["submitted_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       match_confirmations: {
         Row: {
           confirmation_id: string
@@ -187,6 +254,45 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "matches"
             referencedColumns: ["match_id"]
+          },
+        ]
+      }
+      match_evidence: {
+        Row: {
+          evidence_id: string
+          file_url: string
+          match_id: string
+          uploaded_at: string
+          uploaded_by_user_id: string | null
+        }
+        Insert: {
+          evidence_id?: string
+          file_url: string
+          match_id: string
+          uploaded_at?: string
+          uploaded_by_user_id?: string | null
+        }
+        Update: {
+          evidence_id?: string
+          file_url?: string
+          match_id?: string
+          uploaded_at?: string
+          uploaded_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_evidence_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "match_evidence_uploaded_by_user_id_fkey"
+            columns: ["uploaded_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -735,6 +841,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      team_statistics: {
+        Row: {
+          current_win_streak: number
+          forfeit_losses: number
+          forfeit_wins: number
+          longest_win_streak: number
+          matches_lost: number
+          matches_played: number
+          matches_won: number
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          current_win_streak?: number
+          forfeit_losses?: number
+          forfeit_wins?: number
+          longest_win_streak?: number
+          matches_lost?: number
+          matches_played?: number
+          matches_won?: number
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          current_win_streak?: number
+          forfeit_losses?: number
+          forfeit_wins?: number
+          longest_win_streak?: number
+          matches_lost?: number
+          matches_played?: number
+          matches_won?: number
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_statistics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
           },
         ]
       }

@@ -28,6 +28,9 @@ export default async function AdminLayout({
         <Link href="/admin/registrations" className="text-zinc-500">
           Registrations
         </Link>
+        <Link href="/admin/disputes" className="text-zinc-500">
+          Disputes
+        </Link>
       </nav>
       {children}
     </div>
