@@ -59,7 +59,8 @@ export default async function TournamentDetailPage({
         <h1 className="text-2xl font-semibold">{tournament.name}</h1>
         <p className="text-sm text-zinc-500">
           {tournament.division} division &middot; {tournament.status} &middot;{" "}
-          {tournament.required_starting_players} starters &middot; $
+          {tournament.required_starting_players}
+          {" "}starters &middot; $
           {(tournament.entry_fee_per_starting_slot_cents / 100).toFixed(2)} per entry
         </p>
       </div>
