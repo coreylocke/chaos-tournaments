@@ -1,14 +1,14 @@
 ---
 
-## title: Chaos \- Claude Deliverables type: spec last-updated: 2026-07-31 tags: \[chaos-tournaments, architecture, pre-build, spec\]
+## title: Chaos \- Claude Deliverables type: spec last-updated: 2026-08-01 tags: \[chaos-tournaments, architecture, pre-build, spec\]
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c Phase 2, 3, and 4 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d Phase 2, 3, 4, and 5 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), and 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), and 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding).
 
-**Last updated**: 2026-07-31
+**Last updated**: 2026-08-01
 
 ---
 
@@ -41,6 +41,14 @@ These aren't in the original brief — they were decided in conversation and thi
 - **No separate `check_ins` table.** `tournament_registrations.checked_in_at`, already in the Phase 1 schema, is enough for Phase 4 — same reasoning as `payout_entitlements` in Phase 3: build the dedicated table only when something needs more than a timestamp.
 - **Check-in is gated**, not just a free checkbox: it requires `funding_status = 'fully_funded'`, `rules_accepted_at` already set, and — if the tournament configures `check_in_open_at`/`check_in_close_at` — the current time inside that window. This matches the brief's own step order (Entry Funding → Rules → Check-In) and Section 51's "server-side eligibility checks" requirement.
 - **Registration approval is scoped to just approve/reject.** Section 21's admin dashboard lists many more actions (lock/unlock roster, correct payer assignment, seed brackets, etc.) — only the one action Phase 4 explicitly calls for ("registration approval") was built; the rest belongs to the phases that actually need them.
+
+**Phase 5 planning decisions (2026-08-01)**:
+
+- **The `matches` table's flagged broken unique constraint is resolved by dropping it, not fixing it.** Section 3's original DDL noted the advancement-uniqueness constraint referenced a nonexistent `source_match_id` column (the schema actually splits source across `team_1_source_match_id`/`team_2_source_match_id`) and flagged it as needing a generated column or application-level check. Resolved with the latter: `finalizeMatch` uses an atomic `UPDATE ... WHERE status NOT IN ('completed','voided')`, so a match can only ever be finalized once — no DB constraint needed, matching Section 16's own "a completed match can only be reopened by an explicit admin action" rule.
+- **Result entry is admin-only for Phase 5**, not the two-party captain-submits/opponent-confirms flow. The brief's Section 31 (captain submission → opponent confirmation/dispute → auto-confirmation) is explicitly Phase 6 ("Results & Disputes") work — Phase 5 is scoped to "match creation, readiness, score validation, automatic advancement," which only needs *a* result, not *how it was agreed on*. `match_results`/`match_confirmations` rows are still written (`confirmation_type = 'admin'`), so Phase 6 can build the player-facing flow on top of the same tables without a schema change.
+- **`match_evidence` and `disputes` tables are not created yet** — nothing in Phase 5 raises a dispute or needs evidence upload (both explicitly Phase 6), so `matches.dispute_status` stays null and finalizeMatch's "no open dispute" check is trivially satisfied for now.
+- **Seeding uses `registration_order` only.** `tournament_settings.seeding_method` supports six values, but `ranking_based`/`performance_based` need stats data that doesn't exist until later phases, and `manual` needs a dedicated admin drag-and-drop UI. `random`/`hybrid` were skipped too, to keep this pass to one clearly-correct, deterministic algorithm rather than several half-built ones. The standard bracket-seeding placement algorithm (recursive "seed vs. `n+1-seed`") is used regardless of ordering method, so top seeds are always separated across the bracket per Section 27.
+- **Bracket eligibility requires the exact gate from the brief**: `tournament_registrations.status = 'approved'` (Phase 4's admin approval) AND `funding_status = 'fully_funded'` (Phase 3) AND `checked_in_at` set (Phase 4). This is the first place all three prior phases' gates compose together.
 
 ---
 
@@ -774,9 +782,17 @@ create table matches (
 
   created\_at timestamptz not null default now(),
 
-  updated\_at timestamptz not null default now(),
+  updated\_at timestamptz not null default now()
 
-  unique (source\_match\_id, next\_match\_id, next\_match\_slot) \-- placeholder name; enforced via a generated/derived column or application-level check since source is really (team\_1\_source\_match\_id/team\_2\_source\_match\_id)
+  \-- No advancement-uniqueness constraint here (resolved during Phase 5
+
+  \-- planning, see Section 0): the original placeholder referenced a
+
+  \-- nonexistent source\_match\_id column. finalizeMatch's atomic
+
+  \-- \`UPDATE ... WHERE status NOT IN ('completed','voided')\` provides the
+
+  \-- same one-time-only guarantee without a DB constraint.
 
 );
 
@@ -948,7 +964,8 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 
 | Table(s) | Public | Authenticated player | Team captain (own team) | Payer (own payments) | Admin |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| `teams`, `brackets`, `matches` (non-financial columns) | read | read | read/write own | read | read/write |
+| `teams` | read | read | read/write own | read | read/write |
+| `brackets`, `bracket_slots`, `matches`, `match_results`, `match_confirmations` | read | read | read (no write — bracket generation and result entry are admin-only, Phase 5) | read | read/write |
 | `team_members` | — | read own team | read/write own team | — | read/write |
 | `team_invitations` | — | read own (as invitee) | read/write own team's invites | — | read/write |
 | `tournament_registrations`, `registration_rosters` | — | read own | read/write own team's | — | read/write |
@@ -1220,7 +1237,21 @@ Matches Build Phase 4 ("Tournament Registration") from Chaos \- Build Plan and B
 4. Admin registration approval (`/admin/registrations`): list with funding/rules/check-in status, approve/reject action.
 5. `/registration/success` and `/registration/cancelled` — the registration action now redirects to the success page (with links to Team Entries, Edit Roster, and the tournament page) instead of straight to the entries screen.
 
-**Acceptance criteria**: a captain can open a tournament page, register a team from it, land on a confirmation page, fund the entries, accept the rules, and check in — with check-in correctly blocked until funding and rules acceptance are both done and the check-in window (when configured) is open — and an admin can approve or reject the registration. Verified against the live database using the real service-layer functions, including the check-in gating and window-enforcement failure paths, not just the success path.
+**Acceptance criteria**: a captain can open a tournament page, register a team from it, land on a confirmation page, fund the entries, accept the rules, and check in — with check-in correctly blocked until funding and rules acceptance are both done and the check-in window (when configured) is open — and an admin can approve or reject the registration. Verified against the live database using the real service-layer functions, including the check-in gating and window-enforcement failure paths, not just the success path. Additionally click-tested through the actual rendered UI (team creation → admin tournament creation → public tournament page → register → confirmation page), which caught a JSX whitespace bug the service-layer tests couldn't have — a reminder that DB-level verification and UI-level verification catch different classes of bug.
+
+**Status**: reviewed and complete as of 2026-07-31.
+
+## 25d\. Fifth implementation milestone
+
+Matches Build Phase 5 ("Bracket Engine") from Chaos \- Build Plan and Business Rules, scoped per the Phase 5 planning decisions in Section 0 above:
+
+1. `brackets`, `bracket_slots`, `matches`, `match_results`, `match_confirmations` tables per Section 3 DDL (advancement-uniqueness constraint resolved by omission, per Section 0).
+2. Bracket generation (`bracketService.generateBracket`): eligibility gate (approved + fully funded + checked in), bracket size = next power of 2, standard recursive seed placement (top seeds separated, byes distributed rather than clustered), byes auto-completed and cascaded into the next round at generation time, tournament moved to `in_progress`.
+3. Match advancement (`matchAdvancementService.finalizeMatch`): score validation against `best_of` (`required_wins = floor(best_of/2)+1`), atomic idempotent completion, winner inserted into the destination match's slot, destination marked `ready` once both slots are filled, tournament marked `completed` on the final match.
+4. Admin tournament hub (`/admin/tournaments/[id]`): Generate Bracket action, match list by round, Enter Result form per ready match.
+5. Public bracket page (`/tournaments/[slug]/bracket`): bracket tree by round, non-financial columns only, winners highlighted.
+
+**Acceptance criteria**: a 5-team tournament (deliberately not a power of 2, to exercise byes) can have its bracket generated, correctly producing an 8-team bracket with exactly 3 byes assigned to the top 3 seeds and distributed across different first-round matches (not clustered), with byes auto-advancing into round 2; round names match the brief's exact examples (Quarterfinals/Semifinals/Championship); invalid scores are rejected; the bracket can be played out match-by-match through a real admin UI session to a champion, with the tournament correctly marked `completed`; and re-finalizing an already-completed match is rejected. Verified with 20 automated checks against the real service-layer functions plus live UI click-testing, which caught and fixed two real bugs: a `{ head: true }` count-query bug showing "0 eligible teams" on the admin page, and a `null === null` false-positive winner highlight on the public bracket page.
 
 ---
 

@@ -63,6 +63,12 @@ export default async function TournamentDetailPage({
           {" "}starters &middot; $
           {(tournament.entry_fee_per_starting_slot_cents / 100).toFixed(2)} per entry
         </p>
+        <Link
+          href={`/tournaments/${slug}/bracket`}
+          className="mt-2 inline-block text-sm font-medium underline"
+        >
+          View Bracket
+        </Link>
       </div>
 
       {error && (
