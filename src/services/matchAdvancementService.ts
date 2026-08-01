@@ -1,6 +1,7 @@
 import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { parseAndValidateSeriesScore, requiredWins } from "@/lib/rules/bracketRules";
+import { generatePayoutsForTournament } from "@/services/payoutService";
 
 type ServiceClient = ReturnType<typeof createServiceRoleClient>;
 type ResultType = "normal" | "bye" | "forfeit" | "double_forfeit" | "admin_score";
@@ -24,6 +25,23 @@ export async function advanceWinner(
       .from("tournaments")
       .update({ status: "completed" })
       .eq("tournament_id", match.tournament_id);
+
+    const { data: bracket } = await supabase
+      .from("brackets")
+      .select("bracket_id")
+      .eq("tournament_id", match.tournament_id)
+      .single();
+    if (bracket) {
+      await supabase
+        .from("brackets")
+        .update({ status: "completed" })
+        .eq("bracket_id", bracket.bracket_id);
+    }
+
+    // Brief Section 34: "when the championship match completes... create
+    // payout records... place payouts into administrative review" — same
+    // natural-trigger-point pattern as everything else in this build.
+    await generatePayoutsForTournament(match.tournament_id, supabase);
     return;
   }
 

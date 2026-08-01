@@ -251,6 +251,22 @@ export async function handleCheckoutSessionCompleted(event: Stripe.Event) {
     .in("entry_slot_id", entrySlotIds)
     .throwOnError();
 
+  // payout_entitlements is the authoritative entitlement record as of
+  // Phase 7 (CLAUDE.md Section 0); the entry_slot columns above remain a
+  // denormalized read cache, same treatment as payment_id. Brief Section 11
+  // steps 10-11: "set payout entitlement to the payer, mark it active."
+  await supabase
+    .from("payout_entitlements")
+    .upsert(
+      entrySlotIds.map((entrySlotId) => ({
+        entry_slot_id: entrySlotId,
+        holder_user_id: payerUserId,
+        status: "active",
+      })),
+      { onConflict: "entry_slot_id" }
+    )
+    .throwOnError();
+
   await recalculateFundingStatus(registrationId, supabase);
   await markEventProcessed(event.id, supabase);
 }

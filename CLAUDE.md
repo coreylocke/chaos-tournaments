@@ -4,9 +4,9 @@
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d/25e Phase 2, 3, 4, 5, and 6 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d/25e/25f Phase 2, 3, 4, 5, 6, and 7 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding), and 2026-08-01 (Phase 6 planning: two-party result confirmation, team_statistics scoped to per-match fields, dispute-resolution branches without dedicated result_type/bracket-repair tooling, lazy auto-confirmation).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding), 2026-08-01 (Phase 6 planning: two-party result confirmation, team_statistics scoped to per-match fields, dispute-resolution branches without dedicated result_type/bracket-repair tooling, lazy auto-confirmation), and 2026-08-01 (Phase 7 planning: payout_entitlements activated as the authoritative record, 1st/2nd place only, 'placement' allocation method only, automatic payout generation at tournament completion).
 
 **Last updated**: 2026-08-01
 
@@ -57,6 +57,17 @@ These aren't in the original brief — they were decided in conversation and thi
 - **Two dispute-resolution branches reuse `result_type = 'admin_score'`** (`result_reversed` and `team_disqualified`) because the schema's `result_type` enum has no dedicated value for either. **`double_forfeit` resolution via the disputes path doesn't support designating a winner** — only the direct admin forfeit action does — because the dispute-resolution form has no field for it in this pass. **`partial_replay` is treated identically to `match_replay`** (full reset to `ready`) since no per-map score tracking exists yet to make a partial replay meaningfully different. All three are scoped-down implementations of resolution types the brief names but which need bracket-repair tooling this phase doesn't build.
 - **Auto-confirmation is lazy, not cron-driven.** `maybeAutoConfirm` runs on page load (the captain match page calls it before rendering) rather than on a schedule, because no background-job infrastructure exists yet — that's Phase 8/n8n territory. A match sits in `awaiting_confirmation` until either captain visits the page after the window closes, or an admin acts on it directly.
 - **`disputes.match_id` has no `ON DELETE CASCADE`**, unlike its siblings `match_results`/`match_confirmations`/`match_evidence` — this was already how Section 3's DDL specified it before this phase, not a Phase 6 change, but it's worth calling out: a match with an open dispute record can't be deleted out from under it, which is a reasonable guardrail against silently losing dispute history.
+
+**Phase 7 planning decisions (2026-08-01)**:
+
+- **`payout_entitlements` is now the authoritative entitlement record**, activated per its own Phase 3 deferral note. `registration_entry_slots.payout_entitlement_user_id`/`entitlement_status` become a denormalized read cache going forward — the Stripe webhook (`paymentService.handleCheckoutSessionCompleted`) now writes both in the same pass, same treatment as `payment_id`/`payment_entry_allocations`. Two constraints the original DDL didn't encode were added: `payout_entitlements.entry_slot_id` is now `unique` (the ER diagram already implied a one-to-zero-or-one relationship to `registration_entry_slots`) and `payouts` gained `unique (prize_allocation_id, recipient_user_id)`, the exact constraint Section 17's own pseudocode calls for ("prevent duplicate payout generation per tournament") but the original schema pass never added — same class of gap as the Phase 5 matches-table fix.
+- **Only 1st and 2nd place are computed.** Single elimination directly determines a champion (final match winner) and runner-up (final match loser) — brief Section 32/34's own pseudocode names exactly these two. Nothing in this build determines a 3rd-place team (no 3rd-place decider match exists, and splitting between both semifinal losers is never specified), so `third_place_prize_cents`, if an admin configures it, is simply not distributed. Revisit if a 3rd-place decider match is ever built.
+- **Only `prize_allocation_method = 'placement'` is supported** — every tournament in this build configures a direct dollar amount per placement (`first_place_prize_cents`/`second_place_prize_cents`), not a percentage-of-pool split, so that's the only method implemented. `operations_fee_percentage` and percentage-based allocation stay unused until a percentage-split method is actually built.
+- **Payout generation is automatic**, triggered inside `matchAdvancementService.advanceWinner` the instant the championship match completes (no `next_match_id`) — the same "increment at the natural trigger point" pattern used throughout this build, and a direct match for brief Section 34's "when the championship match completes... create payout records... place payouts into administrative review." `brackets.status` also moves to `'completed'` at this same point, closing a small gap left over from Phase 5 (bracket status previously stayed `'active'` forever).
+- **The payout status workflow uses the Section 3 DDL's existing enum** (`pending_review → approved → processing → paid`, plus `failed`/`cancelled`), not the brief's six-stage `results_verified/entitlements_verified/recipient_verified/payout_approved/payout_processing/payout_sent` naming (Section 34) — the DDL enum was already the agreed schema before this phase and captures the same "never automatic, always admin-gated" requirement with fewer states. This pass implements `pending_review → approved → paid` (admin approve, then mark-paid); `processing`/`failed`/`cancelled` stay valid-but-unused enum values since there's no bank-transfer integration to drive them yet.
+- **`team_statistics` gains `tournaments_entered`/`tournaments_won`/`runner_up_finishes`** — the exact fields Phase 6 named as deferred to Phase 7. `tournaments_entered` increments for every team that reached the bracket (same eligibility gate as bracket generation); `tournaments_won`/`runner_up_finishes` increment for the champion/runner-up only. `semifinal_finishes`/`quarterfinal_finishes`/`ranking_points`/`series_won`/`series_lost`/`maps_won`/`maps_lost` (brief Section 38) stay deferred: the round-based finishes need per-round elimination classification unrelated to payout math, `ranking_points` needs the season/points system that's explicitly Phase 9 work, and per-map stats need scoring data that doesn't exist (same gap Phase 6 already noted).
+- **Admin payout review is scoped to approve + mark-paid** on a new `/admin/payouts` page — `processing`/`failed`/`cancelled` transitions and downloadable receipts are deferred, no payment-rails integration exists to drive them, consistent with every prior "no PDF/download infra" deferral in this build. No payer-facing "my payouts" dashboard yet either — Section 22's sponsor dashboard was already deferred at Phase 3 and stays deferred here.
+- **`entitlement_transfers` is created but has no transfer UI or action.** Phase 7's own brief description doesn't call for entitlement transfers, and brief Section 15 explicitly says the initial production version may disable transfers entirely.
 
 ---
 
@@ -592,7 +603,9 @@ create table payout\_entitlements (
 
   created\_at timestamptz not null default now(),
 
-  updated\_at timestamptz not null default now()
+  updated\_at timestamptz not null default now(),
+
+  unique (entry\_slot\_id)
 
 );
 
@@ -626,7 +639,9 @@ create table prize\_allocations (
 
   entry\_share\_value\_cents int not null,
 
-  created\_at timestamptz not null default now()
+  created\_at timestamptz not null default now(),
+
+  unique (tournament\_id, placement)
 
 );
 
@@ -650,7 +665,9 @@ create table payouts (
 
   paid\_at timestamptz,
 
-  created\_at timestamptz not null default now()
+  created\_at timestamptz not null default now(),
+
+  unique (prize\_allocation\_id, recipient\_user\_id)
 
 );
 
@@ -898,6 +915,12 @@ create table team\_statistics (
 
   longest\_win\_streak int not null default 0,
 
+  tournaments\_entered int not null default 0,
+
+  tournaments\_won int not null default 0,
+
+  runner\_up\_finishes int not null default 0,
+
   updated\_at timestamptz not null default now()
 
 );
@@ -1010,6 +1033,7 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 | `payments`, `payment_entry_allocations` | — | — | — | read own | read/write |
 | `payment_events` | — | — | — | — | read only (internal webhook audit trail) |
 | `payout_entitlements`, `payouts`, `payout_line_items` | — | read own | — | read own | read/write |
+| `prize_allocations` | read | read | read | — | read/write |
 | `refunds`, `chargebacks` | — | — | — | read own | read/write |
 | `disputes`, `match_evidence` | — | read if participant | read/write for own team | — | read/write |
 | `audit_logs` | — | — | — | — | read only |
@@ -1302,6 +1326,19 @@ Matches Build Phase 6 ("Results & Disputes") from Chaos \- Build Plan and Busine
 5. Captain match UI (`/teams/[id]/matches/[matchId]`): submit-result form, confirm/dispute actions, status-appropriate read-only views; admin disputes UI (`/admin/disputes`) with a resolution form; admin tournament hub gained a forfeit action per ready/awaiting-confirmation match.
 
 **Acceptance criteria**: an 8-team tournament can be played to a champion exercising all 7 match-resolution paths (normal confirm, dispute-and-uphold, dispute-and-reverse, dispute-and-replay-then-resubmit, forfeit, dispute-and-disqualify, admin-score), plus separate double-forfeit and auto-confirmation tournaments — all with correct `team_statistics` bookkeeping throughout. Verified with 32 automated checks against the real service-layer functions across three synthetic tournaments, plus 18 live UI click-testing checks driving the full captain-submit → opponent-confirm/dispute → admin-resolve flow through real signed-in browser sessions for four different captains and an admin. Testing caught and fixed one real bug: `disputeResult` was missing the same "disputer can't be the original submitter" symmetry check that `confirmResult` already had, letting a captain dispute their own submitted result and prematurely lock the match out of a legitimate opposing dispute.
+
+---
+
+## 25f\. Seventh implementation milestone
+
+Matches Build Phase 7 ("Prize Allocation & Payouts") from Chaos \- Build Plan and Business Rules, scoped per the Phase 7 planning decisions in Section 0 above:
+
+1. `payout_entitlements`, `entitlement_transfers`, `prize_allocations`, `payouts`, `payout_line_items` tables per Section 3 DDL (activated — deferred since Phase 3 — with two missing constraints added: `payout_entitlements.entry_slot_id unique`, `payouts (prize_allocation_id, recipient_user_id) unique`). `team_statistics` gains `tournaments_entered`/`tournaments_won`/`runner_up_finishes`.
+2. The Stripe webhook (`paymentService.handleCheckoutSessionCompleted`) now writes a `payout_entitlements` row alongside its existing `registration_entry_slots` cache update — `payout_entitlements` is the authoritative entitlement record from this point forward.
+3. Payout generation (`payoutService.generatePayoutsForTournament`): triggered automatically from `matchAdvancementService.advanceWinner` when the championship match completes. Computes 1st/2nd place prizes (rounded to `prize_rounding_increment_cents`), splits each into equal per-entry shares, groups credited shares by `payout_entitlement` holder into `payouts` rows (`pending_review`) with itemized `payout_line_items`, applies the remainder-cent rule (`remainder_allocation_rule`/`remainder_fallback_rule`), and bumps the placement `team_statistics` fields. Also closes a small Phase 5 gap by marking `brackets.status = 'completed'` at the same trigger point.
+4. Admin payout review (`payoutService.approvePayout`/`markPayoutPaid`) and a new `/admin/payouts` page: approve a pending payout, then mark it paid (which also flips its entitlements to `paid_out`).
+
+**Acceptance criteria**: a 4-team, 3-required-starters tournament with prize amounts chosen to force a cents-level remainder on both placements can be played to a champion, correctly producing exactly 2 `prize_allocations` rows (1st/2nd place only — a configured `third_place_prize_cents` is confirmed *not* distributed), payouts grouped and totaled correctly per entitlement holder including the remainder-cent rule and its fallback (proven by a case where the fallback recipient holds *fewer* winning entries than the non-recipient, so the assertion can't pass by coincidence), correct `team_statistics` increments for the champion, runner-up, and a non-placing eligible team, and a full admin approve → mark-paid lifecycle exercised through a real signed-in browser session. Verified with 29 automated checks against the real service-layer functions plus 9 live UI click-testing checks. Testing caught and fixed one real bug: the admin payouts page's Supabase query embedded `users` without disambiguating which of `payouts`' two foreign keys to `users` (`recipient_user_id` vs. `approved_by_admin_id`) it meant, so PostgREST rejected the query and the page silently rendered "No payouts awaiting review" regardless of actual data — caught only by driving the real page in a browser, not by the service-layer tests, which never touch that query.
 
 ---
 

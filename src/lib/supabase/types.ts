@@ -218,6 +218,65 @@ export type Database = {
           },
         ]
       }
+      entitlement_transfers: {
+        Row: {
+          approved_by_admin_id: string | null
+          created_at: string
+          entitlement_id: string
+          from_user_id: string | null
+          reason: string | null
+          to_user_id: string
+          transfer_id: string
+        }
+        Insert: {
+          approved_by_admin_id?: string | null
+          created_at?: string
+          entitlement_id: string
+          from_user_id?: string | null
+          reason?: string | null
+          to_user_id: string
+          transfer_id?: string
+        }
+        Update: {
+          approved_by_admin_id?: string | null
+          created_at?: string
+          entitlement_id?: string
+          from_user_id?: string | null
+          reason?: string | null
+          to_user_id?: string
+          transfer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entitlement_transfers_approved_by_admin_id_fkey"
+            columns: ["approved_by_admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "entitlement_transfers_entitlement_id_fkey"
+            columns: ["entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "payout_entitlements"
+            referencedColumns: ["entitlement_id"]
+          },
+          {
+            foreignKeyName: "entitlement_transfers_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "entitlement_transfers_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       match_confirmations: {
         Row: {
           confirmation_id: string
@@ -595,6 +654,180 @@ export type Database = {
           },
         ]
       }
+      payout_entitlements: {
+        Row: {
+          created_at: string
+          entitlement_id: string
+          entry_slot_id: string
+          holder_user_id: string
+          locked_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entitlement_id?: string
+          entry_slot_id: string
+          holder_user_id: string
+          locked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entitlement_id?: string
+          entry_slot_id?: string
+          holder_user_id?: string
+          locked_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_entitlements_entry_slot_id_fkey"
+            columns: ["entry_slot_id"]
+            isOneToOne: true
+            referencedRelation: "registration_entry_slots"
+            referencedColumns: ["entry_slot_id"]
+          },
+          {
+            foreignKeyName: "payout_entitlements_holder_user_id_fkey"
+            columns: ["holder_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      payout_line_items: {
+        Row: {
+          amount_cents: number
+          entitlement_id: string
+          line_item_id: string
+          payout_id: string
+        }
+        Insert: {
+          amount_cents: number
+          entitlement_id: string
+          line_item_id?: string
+          payout_id: string
+        }
+        Update: {
+          amount_cents?: number
+          entitlement_id?: string
+          line_item_id?: string
+          payout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_line_items_entitlement_id_fkey"
+            columns: ["entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "payout_entitlements"
+            referencedColumns: ["entitlement_id"]
+          },
+          {
+            foreignKeyName: "payout_line_items_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["payout_id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          approved_at: string | null
+          approved_by_admin_id: string | null
+          created_at: string
+          paid_at: string | null
+          payout_id: string
+          prize_allocation_id: string
+          recipient_user_id: string
+          status: string
+          total_amount_cents: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_admin_id?: string | null
+          created_at?: string
+          paid_at?: string | null
+          payout_id?: string
+          prize_allocation_id: string
+          recipient_user_id: string
+          status?: string
+          total_amount_cents: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_admin_id?: string | null
+          created_at?: string
+          paid_at?: string | null
+          payout_id?: string
+          prize_allocation_id?: string
+          recipient_user_id?: string
+          status?: string
+          total_amount_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_approved_by_admin_id_fkey"
+            columns: ["approved_by_admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payouts_prize_allocation_id_fkey"
+            columns: ["prize_allocation_id"]
+            isOneToOne: false
+            referencedRelation: "prize_allocations"
+            referencedColumns: ["prize_allocation_id"]
+          },
+          {
+            foreignKeyName: "payouts_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      prize_allocations: {
+        Row: {
+          created_at: string
+          entry_share_value_cents: number
+          placement: number
+          placement_prize_cents: number
+          prize_allocation_id: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_share_value_cents: number
+          placement: number
+          placement_prize_cents: number
+          prize_allocation_id?: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_share_value_cents?: number
+          placement?: number
+          placement_prize_cents?: number
+          prize_allocation_id?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prize_allocations_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["tournament_id"]
+          },
+        ]
+      }
       registration_entry_slots: {
         Row: {
           assigned_starter_user_id: string | null
@@ -853,7 +1086,10 @@ export type Database = {
           matches_lost: number
           matches_played: number
           matches_won: number
+          runner_up_finishes: number
           team_id: string
+          tournaments_entered: number
+          tournaments_won: number
           updated_at: string
         }
         Insert: {
@@ -864,7 +1100,10 @@ export type Database = {
           matches_lost?: number
           matches_played?: number
           matches_won?: number
+          runner_up_finishes?: number
           team_id: string
+          tournaments_entered?: number
+          tournaments_won?: number
           updated_at?: string
         }
         Update: {
@@ -875,7 +1114,10 @@ export type Database = {
           matches_lost?: number
           matches_played?: number
           matches_won?: number
+          runner_up_finishes?: number
           team_id?: string
+          tournaments_entered?: number
+          tournaments_won?: number
           updated_at?: string
         }
         Relationships: [

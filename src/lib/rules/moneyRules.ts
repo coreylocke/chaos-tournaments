@@ -11,3 +11,9 @@ export function sumEntryFeesCents(
 ): number {
   return slots.reduce((total, slot) => total + slot.entry_fee_amount_cents, 0);
 }
+
+// CLAUDE.md Section 7: placement_prize = round(computed_share, prize_rounding_increment_cents).
+export function roundToIncrement(amountCents: number, incrementCents: number): number {
+  if (incrementCents <= 0) return amountCents;
+  return Math.round(amountCents / incrementCents) * incrementCents;
+}
