@@ -5,6 +5,7 @@ import {
   type Platform,
   type TournamentDivision,
 } from "@/lib/rules/platformRules";
+import { assignPlatformRole } from "@/services/discordService";
 
 export type CreateInvitationInput = {
   teamId: string;
@@ -128,5 +129,7 @@ export async function respondToInvitation(input: {
     });
 
     if (memberError) throw memberError;
+
+    await assignPlatformRole(invitation.invited_user_id, invitation.platform as Platform);
   }
 }

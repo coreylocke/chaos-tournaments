@@ -2,6 +2,7 @@ import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { parseAndValidateSeriesScore, requiredWins } from "@/lib/rules/bracketRules";
 import { generatePayoutsForTournament } from "@/services/payoutService";
+import { notifyN8n } from "@/services/n8nNotifyService";
 
 type ServiceClient = ReturnType<typeof createServiceRoleClient>;
 type ResultType = "normal" | "bye" | "forfeit" | "double_forfeit" | "admin_score";
@@ -157,8 +158,45 @@ async function completeMatch(
   await bumpTeamStatistics(winnerTeamId, true, isForfeit, supabase);
   if (loserTeamId) await bumpTeamStatistics(loserTeamId, false, isForfeit, supabase);
 
+  await notifyMatchResultConfirmed(updated, winnerTeamId, loserTeamId, supabase);
   await advanceWinner(match, winnerTeamId, supabase);
   return updated;
+}
+
+async function notifyMatchResultConfirmed(
+  match: { match_id: string; tournament_id: string },
+  winnerTeamId: string,
+  loserTeamId: string | null,
+  supabase: ServiceClient
+) {
+  try {
+    const [{ data: matchRow }, { data: tournament }, { data: winnerTeam }, { data: loserTeam }, { data: latestResult }] =
+      await Promise.all([
+        supabase.from("matches").select("round_name").eq("match_id", match.match_id).single(),
+        supabase.from("tournaments").select("name").eq("tournament_id", match.tournament_id).single(),
+        supabase.from("teams").select("team_name").eq("team_id", winnerTeamId).single(),
+        loserTeamId
+          ? supabase.from("teams").select("team_name").eq("team_id", loserTeamId).single()
+          : Promise.resolve({ data: null }),
+        supabase
+          .from("match_results")
+          .select("series_score")
+          .eq("match_id", match.match_id)
+          .order("submitted_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+    await notifyN8n("match_result_confirmed", {
+      tournament_name: tournament?.name,
+      winner_team_name: winnerTeam?.team_name,
+      loser_team_name: loserTeam?.team_name ?? "TBD",
+      series_score: latestResult?.series_score ?? "N/A",
+      round_name: matchRow?.round_name,
+    });
+  } catch (err) {
+    console.error("match_result_confirmed notification lookup failed:", err);
+  }
 }
 
 export type FinalizeMatchInput = {
@@ -357,7 +395,7 @@ export async function disputeResult(input: DisputeResultInput) {
 
   const { data: match, error } = await supabase
     .from("matches")
-    .select("match_id, team_1_id, team_2_id, status")
+    .select("match_id, tournament_id, round_name, team_1_id, team_2_id, status")
     .eq("match_id", input.matchId)
     .single();
   if (error) throw error;
@@ -401,6 +439,21 @@ export async function disputeResult(input: DisputeResultInput) {
     .from("matches")
     .update({ status: "disputed", dispute_status: "open" })
     .eq("match_id", input.matchId);
+
+  try {
+    const { data: tournament } = await supabase
+      .from("tournaments")
+      .select("name")
+      .eq("tournament_id", match.tournament_id)
+      .single();
+    await notifyN8n("dispute_opened", {
+      tournament_name: tournament?.name,
+      round_name: match.round_name,
+      reason: input.reason,
+    });
+  } catch (err) {
+    console.error("dispute_opened notification lookup failed:", err);
+  }
 }
 
 // Brief Section 39: three of the five double_no_show_policy options don't

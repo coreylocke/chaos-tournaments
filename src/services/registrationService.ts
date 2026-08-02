@@ -2,6 +2,8 @@ import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isPlatformValidForDivision } from "@/lib/rules/platformRules";
 import type { Platform, TournamentDivision } from "@/lib/rules/platformRules";
+import { notifyN8n } from "@/services/n8nNotifyService";
+import { assignCheckedInRoleToTeam } from "@/services/discordService";
 
 type TeamMemberRow = {
   team_member_id: string;
@@ -28,7 +30,7 @@ export async function registerTeamForTournament(input: RegisterTeamInput) {
 
   const { data: team, error: teamError } = await supabase
     .from("teams")
-    .select("team_id, division, captain_user_id")
+    .select("team_id, team_name, division, captain_user_id")
     .eq("team_id", input.teamId)
     .single();
   if (teamError) throw teamError;
@@ -39,7 +41,7 @@ export async function registerTeamForTournament(input: RegisterTeamInput) {
   const { data: tournament, error: tournamentError } = await supabase
     .from("tournaments")
     .select(
-      "tournament_id, division, required_starting_players, maximum_substitutes, maximum_reserves, maximum_coaches, maximum_managers, entry_fee_per_starting_slot_cents, status"
+      "tournament_id, name, division, required_starting_players, maximum_substitutes, maximum_reserves, maximum_coaches, maximum_managers, entry_fee_per_starting_slot_cents, status"
     )
     .eq("tournament_id", input.tournamentId)
     .single();
@@ -154,6 +156,11 @@ export async function registerTeamForTournament(input: RegisterTeamInput) {
     .insert(entrySlotRows);
   if (slotsError) throw slotsError;
 
+  await notifyN8n("registration_created", {
+    team_name: team.team_name,
+    tournament_name: tournament.name,
+  });
+
   return registration;
 }
 
@@ -241,6 +248,8 @@ export async function checkInRegistration(input: {
     .update({ checked_in_at: now.toISOString() })
     .eq("registration_id", input.registrationId);
   if (error) throw error;
+
+  await assignCheckedInRoleToTeam(registration.team_id);
 }
 
 // Admin-only. Authorization happens in the caller, same as the rest of the

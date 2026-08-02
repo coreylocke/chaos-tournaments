@@ -1,6 +1,12 @@
 import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { roundToIncrement } from "@/lib/rules/moneyRules";
+import { notifyN8n } from "@/services/n8nNotifyService";
+import {
+  assignTournamentWinnerRoleToTeam,
+  assignTournamentRunnerUpRoleToTeam,
+  getDiscordUserIdForUser,
+} from "@/services/discordService";
 
 type ServiceClient = ReturnType<typeof createServiceRoleClient>;
 
@@ -27,7 +33,7 @@ export async function generatePayoutsForTournament(tournamentId: string, supabas
 
   const { data: tournament, error: tournamentError } = await supabase
     .from("tournaments")
-    .select("required_starting_players, first_place_prize_cents, second_place_prize_cents")
+    .select("name, required_starting_players, first_place_prize_cents, second_place_prize_cents")
     .eq("tournament_id", tournamentId)
     .single();
   if (tournamentError) throw tournamentError;
@@ -78,6 +84,22 @@ export async function generatePayoutsForTournament(tournamentId: string, supabas
   }
 
   await bumpTournamentPlacementStats(tournamentId, finalMatch.winner_team_id, finalMatch.loser_team_id, supabase);
+
+  await assignTournamentWinnerRoleToTeam(finalMatch.winner_team_id);
+  if (finalMatch.loser_team_id) {
+    await assignTournamentRunnerUpRoleToTeam(finalMatch.loser_team_id);
+  }
+
+  const { count: payoutCount } = await supabase
+    .from("payouts")
+    .select("payout_id, prize_allocations!inner(tournament_id)", { count: "exact", head: true })
+    .eq("prize_allocations.tournament_id", tournamentId);
+  if (payoutCount && payoutCount > 0) {
+    await notifyN8n("payout_pending_review", {
+      tournament_name: tournament.name,
+      payout_count: payoutCount,
+    });
+  }
 }
 
 async function allocatePlacement(args: {
@@ -292,5 +314,32 @@ export async function markPayoutPaid(payoutId: string) {
         lineItems.map((li) => li.entitlement_id)
       );
   }
+
+  try {
+    const { data: allocation } = await supabase
+      .from("prize_allocations")
+      .select("tournaments(name)")
+      .eq("prize_allocation_id", payout.prize_allocation_id)
+      .single();
+    const tournamentName = (allocation?.tournaments as unknown as { name: string } | null)?.name;
+    const { data: recipient } = await supabase
+      .from("users")
+      .select("email")
+      .eq("user_id", payout.recipient_user_id)
+      .single();
+    const discordUserId = await getDiscordUserIdForUser(payout.recipient_user_id);
+    // Sheets logging shouldn't depend on a Discord link — only the DM
+    // itself should skip when there's no linked account (the n8n workflow
+    // handles that gating via is_dm, driven by discord_user_id's presence).
+    await notifyN8n("payout_paid", {
+      tournament_name: tournamentName,
+      discord_user_id: discordUserId,
+      recipient_email: recipient?.email,
+      amount_cents: payout.total_amount_cents,
+    });
+  } catch (err) {
+    console.error("payout_paid notification lookup failed:", err);
+  }
+
   return payout;
 }

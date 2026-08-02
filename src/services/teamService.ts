@@ -4,6 +4,7 @@ import {
   platformToTournamentDivision,
   type Platform,
 } from "@/lib/rules/platformRules";
+import { assignPlatformRole, assignTeamCaptainRole } from "@/services/discordService";
 
 function slugify(name: string) {
   return name
@@ -57,6 +58,9 @@ export async function createTeam(input: CreateTeamInput) {
         });
 
       if (memberError) throw memberError;
+
+      await assignPlatformRole(input.captainUserId, input.captainPlatform);
+      await assignTeamCaptainRole(input.captainUserId);
 
       return team;
     }
