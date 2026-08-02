@@ -4,11 +4,11 @@
 
 # Chaos \- Claude Deliverables
 
-**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d/25e/25f/25g Phase 2, 3, 4, 5, 6, 7, and 8 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
+**Summary**: The 25-item pre-Phase-1 spec required by the master build brief (Section 57, originally "Hermes Deliverables" — see Chaos \- Build Plan and Business Rules for why it's renamed), plus the Section 25a/25b/25c/25d/25e/25f/25g/25h Phase 2, 3, 4, 5, 6, 7, 8, and 9 milestones added as each prior phase shipped. This is the architecture, schema, flows, and implementation milestones that guide each build phase. This is the standalone copy — drop it into the site repo as `docs/CLAUDE.md` so Claude Code has full context without needing the wiki vault.
 
-**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding), 2026-08-01 (Phase 6 planning: two-party result confirmation, team_statistics scoped to per-match fields, dispute-resolution branches without dedicated result_type/bracket-repair tooling, lazy auto-confirmation), 2026-08-01 (Phase 7 planning: payout_entitlements activated as the authoritative record, 1st/2nd place only, 'placement' allocation method only, automatic payout generation at tournament completion), and 2026-08-01 (Phase 8 planning: self-hosted n8n, HTTP-based Discord role assignment and notifications rather than a gateway bot process, event-driven triggers only, Google Sheets sync via n8n's own OAuth2 credential rather than app-side service-account keys, slash commands/email/time-based reminders deferred).
+**Sources**: Synthesized from every Chaos Tournaments detail page in this wiki, all of which trace back to `raw/Chaos MASTER BUILD BRIEF.md`, plus decisions made directly with Corey on 2026-07-29 (game identity, tenancy, platform rules), 2026-07-31 (Phase 2 planning: team invitations, Phase 2/4 registration split, coach/manager roster caps), 2026-07-31 (Phase 3 planning: payment_review status, captain-only entry funding for this pass, payout_entitlements deferred to Phase 7), 2026-07-31 (Phase 4 planning: tournament_rules, no separate check_ins table, check-in gating, registration-approval scope), 2026-08-01 (Phase 5 planning: matches advancement-uniqueness resolution, admin-only result entry, match_evidence/disputes deferred, registration_order-only seeding), 2026-08-01 (Phase 6 planning: two-party result confirmation, team_statistics scoped to per-match fields, dispute-resolution branches without dedicated result_type/bracket-repair tooling, lazy auto-confirmation), 2026-08-01 (Phase 7 planning: payout_entitlements activated as the authoritative record, 1st/2nd place only, 'placement' allocation method only, automatic payout generation at tournament completion), 2026-08-01 (Phase 8 planning: self-hosted n8n, HTTP-based Discord role assignment and notifications rather than a gateway bot process, event-driven triggers only, Google Sheets sync via n8n's own OAuth2 credential rather than app-side service-account keys, slash commands/email/time-based reminders deferred), and 2026-08-02 (Phase 9 planning: conflict detection and season/ranking points shipped, qualifier bracket stacking scoped to the two directly-derivable rules, concurrent match scheduling deferred entirely).
 
-**Last updated**: 2026-08-01
+**Last updated**: 2026-08-02
 
 ---
 
@@ -78,6 +78,15 @@ These aren't in the original brief — they were decided in conversation and thi
 - **Discord roles are scoped to the ones with clear, already-built trigger points**: 4 platform roles (PC/PS5/Xbox/PS4, assigned at team creation and roster-invite acceptance) and 4 tournament-status roles (Team Captain, Checked In, Tournament Winner, Tournament Runner-Up — the last two tie directly into Phase 7's champion/runner-up determination). The wiki's full role list (Registered, Fully Funded, Starter/Substitute/Reserve/Coach/Manager, Entry Sponsor, Tournament Competitor, and per-tournament event-specific roles) uses the same reusable `assignRole`/`getDiscordUserId` primitives already built, so extending it later is mechanical — deferred here to avoid touching every trigger point in one pass, and because event-specific roles need new bookkeeping (does this tournament have a role yet) not built.
 - **Confirmation emails and payment receipts are still deferred** — no email connector exists (already flagged on the Open Risks page).
 - **Google Sheets sync uses n8n's own Google OAuth2 credential, not the `GOOGLE_SHEETS_*` service-account env vars** the original spec named. Self-hosted n8n needs its own registered Google Cloud OAuth client (n8n Cloud has one built in; self-hosted doesn't) — once that existed, connecting via "Sign in with Google" inside n8n was simpler than provisioning and rotating a service-account JSON key for a single-operator instance. The spreadsheet itself was created by n8n (not the app) and its ID lives inside the workflow, not in `.env.local` — the app never talks to Google Sheets directly, matching the "n8n is downstream automation only" architecture. Scoped to 3 tabs matching 3 of the 5 wired event types: Registrations (`registration_created`), Match Results (`match_result_confirmed`), Payouts (`payout_paid`) — `dispute_opened` and `payout_pending_review` stay Discord-only since they're alerts, not records with a natural row to log. The Sheets write is independent of whether a Discord account is linked (a payout with no linked Discord still gets logged — only the DM itself is skipped), unlike the initial pass which incorrectly gated `payout_paid`'s entire notification on having a Discord link at all.
+
+**Phase 9 planning decisions (2026-08-02)** — the brief bundles five distinct sub-systems under "Tournament Stacking"; this pass builds three of them and defers two:
+
+- **`audit_logs` was fully specified in Section 3 from the original pre-build spec but never actually migrated in across Phases 1-8.** Discovered while wiring opposing-team-sponsorship audit logging (below) — created now via migration, matching the DDL that was already agreed.
+- **Conflict detection (brief Section 41) is scoped to the two rules directly enforceable from existing data**: a player can't represent two teams registered for the same tournament (checked in `registerTeamForTournament` against every active roster member, not just starters — coaches/managers count as representing the team too), and `allow_payer_to_sponsor_opposing_teams` is now actually enforced at checkout time (it existed as a column since the original schema pass but nothing ever read it). "A player cannot play in two overlapping matches" and "a team cannot check in for overlapping tournaments" are deferred — both need match/tournament *scheduling times*, which don't exist anywhere in this schema (see the concurrent-scheduling deferral below).
+- **Season ranking points (brief Section 38) are NOT cached on `team_statistics`.** A single `ranking_points` counter doesn't cleanly represent "points within a season" once a team plays across multiple seasons, so `season_points` (one row per team per tournament) is the sole source of truth — standings are computed by summing it, not by reading a cached total. Point values live in a single `tournament_settings.ranking_points_config` jsonb column (one column, brief-default values) rather than 8 separate int columns, since "configurable per tournament" doesn't require them to be individually queryable. A tournament only awards points if it's assigned a `season_id` — seasons are opt-in per tournament, not automatic.
+- **Placement-tier classification finds each team's highest-round *appearance*, not their highest-round *loss*.** A voided double-forfeit match (the `double_no_show_policy = 'void_match'` default from Phase 6) leaves both `winner_team_id` and `loser_team_id` null, so a loss-only search would miss it entirely and both teams would incorrectly fall through to the `participation` tier instead of `forfeit_loss`. Disqualification is detected by checking `disputes.resolution = 'team_disqualified'` against the team's elimination match, since (per Phase 6) that resolution reuses `result_type = 'admin_score'` and has no dedicated marker on the match itself.
+- **Qualifier bracket stacking (brief Section 43) is scoped to `qualification_rule` values `bracket_winner`/`bracket_runner_up` only** — `top_two`/`points_leader`/`wild_card`/`admin_selection` need standings data or manual admin picks beyond what this pass builds. **This pass does not solve "how does an admin generate a championship bracket with slots intentionally left empty for not-yet-known qualifier winners."** `generateBracket` only ever runs against teams that are *already* eligible — it has no mode for reserving a match slot for a team that doesn't exist yet. For now, an admin/operator constructs the destination bracket and match row directly (the same thing this pass's own tests do) before creating a link at `/admin/qualifications`; building that bracket-generation mode is future admin-tooling work. Entry-fee carryover (Section 43's "resolved" note) reads the qualifying team's payout entitlements from the `payout_entitlements` table directly, not the `registration_entry_slots` cache columns — the cache isn't guaranteed to be populated for entitlements created or updated outside the Stripe webhook path.
+- **Concurrent match scheduling (brief Section 42) is deferred entirely.** `maximum_concurrent_matches`, admin capacity, stream-slot capacity, `estimated_match_minutes`, and buffer minutes describe a real-time scheduling/capacity system with no existing concept anywhere in this build to extend — matches currently have no start/end time at all. Building this well means designing new scheduling UX from scratch rather than extending something already proven, so it's left as a distinct future phase rather than guessed at here.
 
 ---
 
@@ -192,6 +201,12 @@ erDiagram
     matches ||--o{ match\_evidence : "has"
 
     teams ||--|| team\_statistics : "tracks"
+
+    seasons ||--o{ tournaments : "groups"
+
+    seasons ||--o{ season\_points : "awards"
+
+    brackets ||--o{ bracket\_qualifications : "feeds"
 
     teams ||--o{ grudge\_matches : "challenges"
 
@@ -377,6 +392,8 @@ create table tournaments (
 
   status text not null default 'draft' check (status in ('draft','open','registration\_closed','in\_progress','completed','cancelled')),
 
+  season\_id uuid references seasons(season\_id),
+
   created\_at timestamptz not null default now(),
 
   updated\_at timestamptz not null default now()
@@ -409,7 +426,9 @@ create table tournament\_settings (
 
   seeding\_method text not null default 'hybrid'
 
-    check (seeding\_method in ('random','registration\_order','manual','ranking\_based','performance\_based','hybrid'))
+    check (seeding\_method in ('random','registration\_order','manual','ranking\_based','performance\_based','hybrid')),
+
+  ranking\_points\_config jsonb not null default '{"champion": 100, "runner\_up": 70, "semifinalist": 45, "quarterfinalist": 25, "round\_of\_16": 10, "participation": 5, "forfeit\_loss": 0, "disqualification": 0}'::jsonb
 
 );
 
@@ -935,6 +954,74 @@ create table team\_statistics (
 
 );
 
+\-- Tournament stacking (Phase 9\) \------------------------------------------
+
+create table seasons (
+
+  season\_id uuid primary key default gen\_random\_uuid(),
+
+  name text not null,
+
+  starts\_at timestamptz,
+
+  ends\_at timestamptz,
+
+  status text not null default 'upcoming' check (status in ('upcoming','active','completed')),
+
+  created\_at timestamptz not null default now(),
+
+  updated\_at timestamptz not null default now()
+
+);
+
+create table season\_points (
+
+  season\_points\_id uuid primary key default gen\_random\_uuid(),
+
+  season\_id uuid not null references seasons(season\_id) on delete cascade,
+
+  tournament\_id uuid not null references tournaments(tournament\_id),
+
+  team\_id uuid not null references teams(team\_id),
+
+  points int not null,
+
+  placement\_tier text not null check (placement\_tier in ('champion','runner\_up','semifinalist','quarterfinalist','round\_of\_16','participation','forfeit\_loss','disqualification')),
+
+  created\_at timestamptz not null default now(),
+
+  unique (tournament\_id, team\_id)
+
+);
+
+create table bracket\_qualifications (
+
+  bracket\_qualification\_id uuid primary key default gen\_random\_uuid(),
+
+  source\_bracket\_id uuid not null references brackets(bracket\_id),
+
+  source\_placement int not null default 1,
+
+  destination\_bracket\_id uuid not null references brackets(bracket\_id),
+
+  destination\_match\_id uuid not null references matches(match\_id),
+
+  destination\_slot int not null check (destination\_slot in (1,2)),
+
+  qualification\_rule text not null default 'bracket\_winner' check (qualification\_rule in ('bracket\_winner','bracket\_runner\_up')),
+
+  resolved\_team\_id uuid references teams(team\_id),
+
+  resolved\_registration\_id uuid references tournament\_registrations(registration\_id),
+
+  resolved\_at timestamptz,
+
+  created\_at timestamptz not null default now(),
+
+  unique (source\_bracket\_id, qualification\_rule, destination\_match\_id, destination\_slot)
+
+);
+
 \-- Grudge matches (no platform restriction — see Section 0\) \-----------------
 
 create table grudge\_matches (
@@ -997,7 +1084,7 @@ create table audit\_logs (
 
 > Note: the `matches` table's advancement-uniqueness constraint (`source_match_id, destination_match_id, destination_slot`) needs a generated column or application-level enforcement since the source is split across `team_1_source_match_id`/`team_2_source_match_id` — flagged here rather than shipped as broken SQL above.
 
-**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `match_maps`, `match_roster_snapshots`, `substitutions`, `rankings`, `player_statistics`, `seasons`, `season_points`, `notifications`, `discord_role_assignments`, `automation_events`. `team_statistics` is fully specified above as of the Phase 6 pass (scoped to per-match fields only — see Section 0). (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are fully specified above as of the Phase 2 planning pass; `tournament_rules` as of Phase 4. `check_ins` — decided: no separate table for now, `tournament_registrations.checked_in_at` covers Phase 4's needs; revisit if a richer per-player check-in record is ever needed.)
+**Remaining tables (no full DDL yet — same conventions, finalized when their phase starts):** `games`, `platforms`, `match_maps`, `match_roster_snapshots`, `substitutions`, `rankings`, `player_statistics`, `notifications`, `discord_role_assignments`, `automation_events`. `team_statistics` is fully specified above as of the Phase 6 pass (scoped to per-match fields only — see Section 0). `seasons`, `season_points`, and `bracket_qualifications` are fully specified above as of the Phase 9 pass. `audit_logs` was specified from the original pre-build spec but only actually migrated in as of Phase 9 (see Section 0). (`entry_checkout_locks` — decided: folded into `registration_entry_slots.checkout_lock_status`/`checkout_lock_expires_at` rather than a separate table, as already reflected above. `team_invitations` and `registration_rosters` are fully specified above as of the Phase 2 planning pass; `tournament_rules` as of Phase 4. `check_ins` — decided: no separate table for now, `tournament_registrations.checked_in_at` covers Phase 4's needs; revisit if a richer per-player check-in record is ever needed.)
 
 ---
 
@@ -1035,6 +1122,7 @@ Remainder cents (when a split doesn't divide evenly) go to `remainder_allocation
 | `brackets`, `bracket_slots` | read | read | read (no write — bracket generation is admin-only) | read | read/write |
 | `matches`, `match_results`, `match_confirmations` | read | read | read/write for own team's matches (submit/confirm/dispute a result, Phase 6), via service layer | read | read/write |
 | `team_statistics` | read | read | read | — | read/write |
+| `seasons`, `season_points`, `bracket_qualifications` | read | read | read | — | read/write |
 | `team_members` | — | read own team | read/write own team | — | read/write |
 | `team_invitations` | — | read own (as invitee) | read/write own team's invites | — | read/write |
 | `tournament_registrations`, `registration_rosters` | — | read own | read/write own team's | — | read/write |
@@ -1372,6 +1460,23 @@ Matches the Discord-role/n8n-notification slice of Build Phase 8 ("Discord & Aut
 **Deliberately not included** (deferred per Section 0): Discord slash commands, confirmation/reminder emails, time-based reminder triggers (payment/check-in), refund notifications (refunds aren't built yet), Sheets tabs for tournament capacity/refunds/accounting exports beyond the 3 built, and the remaining ~11 Discord roles from the wiki's full role list (all straightforward to add later using the same primitives).
 
 **Status**: reviewed and complete as of 2026-08-01.
+
+---
+
+## 25h\. Ninth implementation milestone
+
+Matches Build Phase 9 ("Tournament Stacking") from Chaos \- Build Plan and Business Rules, scoped per the Phase 9 planning decisions in Section 0 above — three of the brief's five bundled sub-systems shipped, two deferred:
+
+1. `audit_logs` — fully specified since the original pre-build spec but never actually migrated in across Phases 1-8 — created via migration.
+2. Conflict detection: `registerTeamForTournament` blocks a player from being on two teams registered for the same tournament (checked against every active roster member); `paymentService.createCheckoutSession` now enforces `tournament_settings.allow_payer_to_sponsor_opposing_teams` (default `false`), writing a blocked attempt to `audit_logs` per the brief's "flag the attempt for admin review."
+3. `seasons`, `season_points` tables, `tournaments.season_id`, `tournament_settings.ranking_points_config`. `seasonService.awardSeasonPoints` classifies every bracket-eligible team's placement tier (champion/runner-up/semifinalist/quarterfinalist/round-of-16/participation/forfeit-loss/disqualification) and awards points, triggered from `matchAdvancementService.advanceWinner` at the same point as payout generation. A tournament not assigned a season never triggers this.
+4. `bracket_qualifications` table, `qualificationService.ts` (`linkQualification`/`resolveQualificationsForBracket`), wired into `advanceWinner`; a new `/admin/qualifications` page for creating links. Handles the entry-fee-carryover logic from brief Section 43 (identical fees carry the existing payment/entitlement over; different fees create fresh unpaid slots at the championship's own fee).
+
+**Acceptance criteria**: an 8-team tournament played to completion correctly classifies 6 of the 8 placement tiers (champion, runner-up, both semifinal losers, both normal quarterfinal losers, a forfeited quarterfinal loser, and a disqualified quarterfinal team) with the brief's suggested point values, including a voided double-forfeit match (which leaves both `winner_team_id`/`loser_team_id` null) correctly classified as `forfeit_loss` rather than falling through to `participation`; two synthetic qualifier tournaments correctly advance their winners into a manually-constructed championship match's two slots — one exercising same-fee carryover (paid slot, entitlement holder preserved, verified against the authoritative `payout_entitlements` table rather than the entry-slot cache) and one exercising different-fee fresh registration — with division-mismatch and already-filled-slot attempts correctly rejected; and conflict detection blocks a shared-roster-member registration and an opposing-team sponsorship attempt while allowing both once the tournament's own settings permit it. Verified with 32 automated checks against the real service-layer functions across three synthetic scenarios, plus 4 live UI click-testing checks against `/admin/qualifications` through a real signed-in browser session. Testing caught and fixed two real bugs: `resolveQualificationLink` read the source team's payout-entitlement holder from `registration_entry_slots`' denormalized cache instead of the authoritative `payout_entitlements` table (stale/unpopulated in any entitlement path that doesn't go through the Stripe webhook, silently carrying over a `null` entitlement holder); and a missing error check on a `.single()` query inside the same function surfaced only as a generic null-property crash instead of the actual Postgres error, making the first bug much harder to diagnose than it needed to be.
+
+**Deliberately not included** (deferred per Section 0): concurrent match scheduling (brief Section 42 — needs scheduling/capacity concepts, like match start times and admin/stream-slot availability, that don't exist anywhere in this build); the four qualification rules beyond `bracket_winner`/`bracket_runner_up`; "player can't play two overlapping matches" and "team can't check in to overlapping tournaments" conflict checks (both need the same scheduling infrastructure); and admin tooling for generating a championship bracket with slots pre-reserved for not-yet-known qualifier winners (an admin/operator constructs that structure directly for now).
+
+**Status**: reviewed and complete as of 2026-08-02.
 
 ---
 

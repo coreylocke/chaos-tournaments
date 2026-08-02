@@ -124,6 +124,31 @@ export async function registerTeamForTournament(input: RegisterTeamInput) {
     );
   }
 
+  // Brief Section 41: "a player may represent only one team in the same
+  // tournament." Check every active roster member (not just starters —
+  // coaches/managers count as representing the team too) against every
+  // other team they belong to for a conflicting registration.
+  const memberUserIds = (members as TeamMemberRow[]).map((m) => m.user_id);
+  const { data: otherMemberships } = await supabase
+    .from("team_members")
+    .select("user_id, team_id")
+    .in("user_id", memberUserIds)
+    .neq("team_id", input.teamId)
+    .eq("is_active", true);
+  const otherTeamIds = [...new Set((otherMemberships ?? []).map((m) => m.team_id))];
+  if (otherTeamIds.length) {
+    const { data: conflictingRegs } = await supabase
+      .from("tournament_registrations")
+      .select("team_id")
+      .eq("tournament_id", input.tournamentId)
+      .in("team_id", otherTeamIds);
+    if (conflictingRegs?.length) {
+      throw new Error(
+        "One or more of this team's members are already registered for this tournament on another team."
+      );
+    }
+  }
+
   const { data: registration, error: registrationError } = await supabase
     .from("tournament_registrations")
     .insert({ tournament_id: input.tournamentId, team_id: input.teamId })

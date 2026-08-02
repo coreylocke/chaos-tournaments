@@ -39,6 +39,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          after_state: Json | null
+          audit_log_id: string
+          before_state: Json | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          after_state?: Json | null
+          audit_log_id?: string
+          before_state?: Json | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          after_state?: Json | null
+          audit_log_id?: string
+          before_state?: Json | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      bracket_qualifications: {
+        Row: {
+          bracket_qualification_id: string
+          created_at: string
+          destination_bracket_id: string
+          destination_match_id: string
+          destination_slot: number
+          qualification_rule: string
+          resolved_at: string | null
+          resolved_registration_id: string | null
+          resolved_team_id: string | null
+          source_bracket_id: string
+          source_placement: number
+        }
+        Insert: {
+          bracket_qualification_id?: string
+          created_at?: string
+          destination_bracket_id: string
+          destination_match_id: string
+          destination_slot: number
+          qualification_rule?: string
+          resolved_at?: string | null
+          resolved_registration_id?: string | null
+          resolved_team_id?: string | null
+          source_bracket_id: string
+          source_placement?: number
+        }
+        Update: {
+          bracket_qualification_id?: string
+          created_at?: string
+          destination_bracket_id?: string
+          destination_match_id?: string
+          destination_slot?: number
+          qualification_rule?: string
+          resolved_at?: string | null
+          resolved_registration_id?: string | null
+          resolved_team_id?: string | null
+          source_bracket_id?: string
+          source_placement?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bracket_qualifications_destination_bracket_id_fkey"
+            columns: ["destination_bracket_id"]
+            isOneToOne: false
+            referencedRelation: "brackets"
+            referencedColumns: ["bracket_id"]
+          },
+          {
+            foreignKeyName: "bracket_qualifications_destination_match_id_fkey"
+            columns: ["destination_match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "bracket_qualifications_resolved_registration_id_fkey"
+            columns: ["resolved_registration_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_registrations"
+            referencedColumns: ["registration_id"]
+          },
+          {
+            foreignKeyName: "bracket_qualifications_resolved_team_id_fkey"
+            columns: ["resolved_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "bracket_qualifications_source_bracket_id_fkey"
+            columns: ["source_bracket_id"]
+            isOneToOne: false
+            referencedRelation: "brackets"
+            referencedColumns: ["bracket_id"]
+          },
+        ]
+      }
       bracket_slots: {
         Row: {
           bracket_id: string
@@ -965,6 +1084,88 @@ export type Database = {
           },
         ]
       }
+      season_points: {
+        Row: {
+          created_at: string
+          placement_tier: string
+          points: number
+          season_id: string
+          season_points_id: string
+          team_id: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          placement_tier: string
+          points: number
+          season_id: string
+          season_points_id?: string
+          team_id: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          placement_tier?: string
+          points?: number
+          season_id?: string
+          season_points_id?: string
+          team_id?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_points_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["season_id"]
+          },
+          {
+            foreignKeyName: "season_points_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "season_points_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["tournament_id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          name: string
+          season_id: string
+          starts_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          name: string
+          season_id?: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          name?: string
+          season_id?: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_invitations: {
         Row: {
           created_at: string
@@ -1269,6 +1470,7 @@ export type Database = {
           double_no_show_policy: string
           operations_fee_percentage: number
           prize_rounding_increment_cents: number
+          ranking_points_config: Json
           remainder_allocation_rule: string
           remainder_fallback_rule: string
           seeding_method: string
@@ -1282,6 +1484,7 @@ export type Database = {
           double_no_show_policy?: string
           operations_fee_percentage?: number
           prize_rounding_increment_cents?: number
+          ranking_points_config?: Json
           remainder_allocation_rule?: string
           remainder_fallback_rule?: string
           seeding_method?: string
@@ -1295,6 +1498,7 @@ export type Database = {
           double_no_show_policy?: string
           operations_fee_percentage?: number
           prize_rounding_increment_cents?: number
+          ranking_points_config?: Json
           remainder_allocation_rule?: string
           remainder_fallback_rule?: string
           seeding_method?: string
@@ -1334,6 +1538,7 @@ export type Database = {
           registration_open_at: string | null
           required_starting_players: number
           roster_lock_at: string | null
+          season_id: string | null
           second_place_prize_cents: number | null
           slug: string
           starts_at: string | null
@@ -1365,6 +1570,7 @@ export type Database = {
           registration_open_at?: string | null
           required_starting_players?: number
           roster_lock_at?: string | null
+          season_id?: string | null
           second_place_prize_cents?: number | null
           slug: string
           starts_at?: string | null
@@ -1396,6 +1602,7 @@ export type Database = {
           registration_open_at?: string | null
           required_starting_players?: number
           roster_lock_at?: string | null
+          season_id?: string | null
           second_place_prize_cents?: number | null
           slug?: string
           starts_at?: string | null
@@ -1404,7 +1611,15 @@ export type Database = {
           tournament_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["season_id"]
+          },
+        ]
       }
       users: {
         Row: {

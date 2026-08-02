@@ -2,6 +2,8 @@ import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { parseAndValidateSeriesScore, requiredWins } from "@/lib/rules/bracketRules";
 import { generatePayoutsForTournament } from "@/services/payoutService";
+import { awardSeasonPoints } from "@/services/seasonService";
+import { resolveQualificationsForBracket } from "@/services/qualificationService";
 import { notifyN8n } from "@/services/n8nNotifyService";
 
 type ServiceClient = ReturnType<typeof createServiceRoleClient>;
@@ -43,6 +45,14 @@ export async function advanceWinner(
     // payout records... place payouts into administrative review" — same
     // natural-trigger-point pattern as everything else in this build.
     await generatePayoutsForTournament(match.tournament_id, supabase);
+    // Brief Section 38: season ranking points, awarded at the same trigger
+    // point. No-ops for tournaments not assigned to a season.
+    await awardSeasonPoints(match.tournament_id, supabase);
+    // Brief Section 43: resolve any qualifier links waiting on this
+    // bracket (e.g. this was a qualifier bracket feeding a championship).
+    if (bracket) {
+      await resolveQualificationsForBracket(bracket.bracket_id, supabase);
+    }
     return;
   }
 

@@ -34,6 +34,9 @@ export default async function AdminLayout({
         <Link href="/admin/payouts" className="text-zinc-500">
           Payouts
         </Link>
+        <Link href="/admin/qualifications" className="text-zinc-500">
+          Qualifications
+        </Link>
       </nav>
       {children}
     </div>

@@ -64,6 +64,42 @@ export async function createCheckoutSession(input: CreateCheckoutSessionInput) {
     tournaments: { division: string } | null;
   };
 
+  // Brief Section 41 ("Opposing-Team Sponsorship Policy"): unless the
+  // tournament explicitly allows it, a payer can't hold an active
+  // entitlement on one team in a tournament while funding an entry on
+  // another team in the same tournament. "Opposing teams" is evaluated as
+  // any two teams entered in the same tournament, not match-level
+  // opponents (that would need re-checking at seeding time instead).
+  const { data: settings } = await supabase
+    .from("tournament_settings")
+    .select("allow_payer_to_sponsor_opposing_teams")
+    .eq("tournament_id", registrationMeta.tournament_id)
+    .maybeSingle();
+  if (!settings?.allow_payer_to_sponsor_opposing_teams) {
+    const { data: opposingEntitlements } = await supabase
+      .from("registration_entry_slots")
+      .select("entry_slot_id, tournament_registrations!inner(tournament_id, team_id)")
+      .eq("payout_entitlement_user_id", input.payerUserId)
+      .eq("tournament_registrations.tournament_id", registrationMeta.tournament_id)
+      .neq("tournament_registrations.team_id", registrationMeta.team_id);
+    if (opposingEntitlements?.length) {
+      await supabase.from("audit_logs").insert({
+        actor_user_id: input.payerUserId,
+        action: "opposing_team_sponsorship_blocked",
+        entity_type: "tournament_registrations",
+        entity_id: registrationId,
+        after_state: {
+          tournament_id: registrationMeta.tournament_id,
+          attempted_team_id: registrationMeta.team_id,
+          existing_entitlement_entry_slot_ids: opposingEntitlements.map((e) => e.entry_slot_id),
+        },
+      });
+      throw new Error(
+        "You already fund an entry for a different team in this tournament — this tournament doesn't allow sponsoring opposing teams."
+      );
+    }
+  }
+
   const now = new Date();
   const expiresAtDate = new Date(now.getTime() + CHECKOUT_LOCK_MINUTES * 60 * 1000);
   const nowIso = now.toISOString();
