@@ -1,6 +1,6 @@
 import "server-only";
 import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { CHECKOUT_LOCK_MINUTES, sumEntryFeesCents } from "@/lib/rules/moneyRules";
 import type { Json } from "@/lib/supabase/types";
@@ -134,7 +134,7 @@ export async function createCheckoutSession(input: CreateCheckoutSessionInput) {
 
   const totalCents = sumEntryFeesCents(slots);
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "payment",
     line_items: slots.map((slot) => ({
       quantity: 1,
@@ -219,17 +219,30 @@ export async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   const amountMatches = recomputedTotal === (session.amount_total ?? -1);
 
   if (!slotsStillEligible || !amountMatches || !payerUserId) {
-    await supabase
-      .from("payments")
-      .insert({
-        payer_user_id: payerUserId ?? null,
-        stripe_checkout_session_id: session.id,
-        stripe_payment_intent_id:
-          typeof session.payment_intent === "string" ? session.payment_intent : null,
-        amount_cents: session.amount_total ?? 0,
-        status: "payment_mismatch",
-      })
-      .throwOnError();
+    // payments.payer_user_id is not-null by schema (every payment must have a
+    // known payer) - a session with no payer_user_id in its metadata can't
+    // produce a valid row here at all. This only happens for an event our own
+    // createCheckoutSession never produced (e.g. a foreign/malformed event
+    // type reaching this endpoint), so there's nothing payment-shaped to
+    // record - just log it for visibility and fall through to the same
+    // slot/registration admin-review handling.
+    if (payerUserId) {
+      await supabase
+        .from("payments")
+        .insert({
+          payer_user_id: payerUserId,
+          stripe_checkout_session_id: session.id,
+          stripe_payment_intent_id:
+            typeof session.payment_intent === "string" ? session.payment_intent : null,
+          amount_cents: session.amount_total ?? 0,
+          status: "payment_mismatch",
+        })
+        .throwOnError();
+    } else {
+      console.error(
+        `Stripe webhook: checkout.session ${session.id} has no payer_user_id metadata - skipping payments insert`
+      );
+    }
 
     if (entrySlotIds.length) {
       await supabase

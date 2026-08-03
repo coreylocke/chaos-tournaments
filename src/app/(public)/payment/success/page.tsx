@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 // Purely informational — the redirect here never marks anything paid.
 // Only the Stripe webhook (paymentService.handleCheckoutSessionCompleted)
@@ -14,7 +14,7 @@ export default async function PaymentSuccessPage({
   let amountCents: number | null = null;
   if (session_id) {
     try {
-      const session = await stripe.checkout.sessions.retrieve(session_id);
+      const session = await getStripe().checkout.sessions.retrieve(session_id);
       amountCents = session.amount_total;
     } catch {
       // Session lookup is best-effort display only.
