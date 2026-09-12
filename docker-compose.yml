@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - BOT_INTERNAL_URL=http://bot:4001
+    expose:
+      - "3000"
+    depends_on:
+      - bot
+
+  bot:
+    build: ./bot
+    restart: always
+    env_file:
+      - .env
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

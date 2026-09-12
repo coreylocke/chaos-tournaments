@@ -1,0 +1,19 @@
+{
+  "name": "chaos-tournaments-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "register-commands": "node dist/registerCommands.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.1",
+    "discord.js": "^14.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

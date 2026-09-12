@@ -1,14 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import type { Database } from "./types";
 
-// Anon + RLS client for server components, route handlers, and server actions
-// acting on behalf of the signed-in user (cookie-based session).
+/**
+ * Server-side Supabase client for use in Server Components, Route Handlers, and Server
+ * Actions. Reads/writes the auth cookie via Next.js's cookies() API.
+ */
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -22,8 +23,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Called from a Server Component — proxy.ts refreshes the
-            // session cookie on the next request, so this is safe to ignore.
+            // Called from a Server Component with no request context to mutate — safe to
+            // ignore as long as middleware.ts is refreshing the session on every request.
           }
         },
       },
@@ -31,12 +32,12 @@ export async function createClient() {
   );
 }
 
-// Service-role client: bypasses RLS entirely. Server-only — never import
-// this from a Client Component. Reserved for validated service-layer writes
-// per CLAUDE.md Section 8 (privileged writes go through the service layer,
-// not direct client writes).
-export function createServiceRoleClient() {
-  return createSupabaseClient<Database>(
+/**
+ * Admin client using the service role key — bypasses Row Level Security. Only use in
+ * trusted server contexts (webhooks, admin actions), never expose to the client.
+ */
+export function createAdminClient() {
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }
