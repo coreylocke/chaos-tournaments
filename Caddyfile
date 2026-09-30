@@ -1,3 +1,20 @@
 chaostournaments.com, www.chaostournaments.com {
 	reverse_proxy app:3000
 }
+
+lockeinvestments.net, www.lockeinvestments.net {
+	reverse_proxy lockeinvestments:80
+}
+
+vaultwarden.lockeinvestments.net {
+	reverse_proxy vaultwarden:80
+	header / {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+	request_body {
+		max_size 50MB
+	}
+}

@@ -17,6 +17,20 @@ services:
     env_file:
       - .env
 
+  lockeinvestments:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - /var/www/lockeinvestments:/usr/share/nginx/html:ro
+      - ./site-confs/lockeinvestments.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
   caddy:
     image: caddy:2-alpine
     restart: always
@@ -28,7 +42,10 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - app
+      app:
+        condition: service_started
+      lockeinvestments:
+        condition: service_healthy
 
 volumes:
   caddy_data:
