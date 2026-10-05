@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ParticleFieldCanvas from "@/components/ParticleFieldCanvas";
 import ScrollReveal from "@/components/ScrollReveal";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 const HOW_IT_WORKS = [
   {
@@ -161,7 +162,9 @@ export default function Home() {
               Match notifications, check-in reminders, and support all happen in Discord.
             </p>
             <Link
-              href="/login"
+              href={DISCORD_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="touch-target flex items-center justify-center rounded-md bg-chaos-gold px-8 text-base font-bold text-chaos-black transition hover:shadow-gold-glow"
             >
               Join on Discord

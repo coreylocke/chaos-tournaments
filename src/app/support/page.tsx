@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Support",
@@ -69,12 +70,22 @@ export default function SupportPage() {
             through the official Chaos Tournaments Discord server, where Tournament
             Officials handle every request.
           </p>
-          <Link
-            href="/login"
-            className="touch-target mt-2 flex items-center justify-center rounded-md bg-chaos-gold px-8 text-base font-bold text-chaos-black transition hover:shadow-gold-glow"
-          >
-            Login with Discord
-          </Link>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <Link
+              href={DISCORD_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="touch-target flex items-center justify-center rounded-md bg-chaos-gold px-8 text-base font-bold text-chaos-black transition hover:shadow-gold-glow"
+            >
+              Join the Discord Server
+            </Link>
+            <Link
+              href="/login"
+              className="touch-target flex items-center justify-center rounded-md border border-chaos-gold/50 px-8 text-base font-bold text-chaos-gold transition hover:bg-chaos-gold/10"
+            >
+              Login with Discord
+            </Link>
+          </div>
         </ScrollReveal>
       </section>
 
@@ -118,9 +129,17 @@ export default function SupportPage() {
           <div className="rounded-lg border border-white/10 bg-chaos-charcoal p-8">
             <h3 className="font-display text-xl font-bold text-chaos-white">Use the right channel</h3>
             <p className="mt-3 text-sm leading-relaxed text-chaos-white/70">
-              Every part of the operation has a home in the Discord server. Posting in the
-              right place gets you the fastest answer.
+              Every part of the operation has a home in the Discord server. Join with the
+              link below, then post in the right place to get the fastest answer.
             </p>
+            <Link
+              href={DISCORD_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="touch-target mt-4 inline-flex items-center justify-center rounded-md bg-chaos-gold px-6 text-sm font-bold text-chaos-black transition hover:shadow-gold-glow"
+            >
+              Join the Discord Server
+            </Link>
             <ul className="mt-6 space-y-3">
               {CHANNELS.map((c) => (
                 <li key={c.channel} className="flex items-start gap-3">
@@ -197,15 +216,17 @@ export default function SupportPage() {
             Still <span className="text-chaos-gold">stuck?</span>
           </h2>
           <p className="max-w-lg text-sm text-chaos-white/70">
-            Sign in with Discord and head to the support channel. If it&apos;s a competitive
+            Join the Discord server and head to the support channel. If it&apos;s a competitive
             matter, the rulebook is the source of truth.
           </p>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <Link
-              href="/login"
+              href={DISCORD_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="touch-target flex items-center justify-center rounded-md bg-chaos-gold px-8 text-base font-bold text-chaos-black transition hover:shadow-gold-glow"
             >
-              Login with Discord
+              Join the Discord Server
             </Link>
             <Link
               href="/rules"
